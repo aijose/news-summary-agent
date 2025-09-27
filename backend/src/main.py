@@ -5,19 +5,27 @@ This module sets up the FastAPI application with all necessary middleware,
 routers, and configuration for the News Summary Agent API.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
 from .config import settings
 from .database import engine, Base
-from .api import articles, search, summaries
+from .routers import articles
+from .utils.logging_config import setup_logging, RequestLoggingMiddleware
+from .utils.error_handling import (
+    NewsAgentException,
+    http_exception_handler,
+    news_agent_exception_handler,
+    generic_exception_handler
+)
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL.upper()),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# Configure enhanced logging
+setup_logging(
+    log_level=settings.LOG_LEVEL,
+    log_file="logs/news_agent.log",
+    json_format=False
 )
 logger = logging.getLogger(__name__)
 
@@ -55,10 +63,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
+
+# Add exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(NewsAgentException, news_agent_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
+
 # Include API routers
-app.include_router(articles.router, prefix="/api/v1/articles", tags=["articles"])
-app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
-app.include_router(summaries.router, prefix="/api/v1/summaries", tags=["summaries"])
+app.include_router(articles.router, prefix="/api/v1")
 
 
 @app.get("/")
