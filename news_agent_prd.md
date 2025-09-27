@@ -203,30 +203,51 @@ The News Summary Agent is a RAG + agentic application that transforms how users 
 
 ### Architecture Requirements
 - **Modular Design:** Separate RAG and Agent components for independent scaling
-- **API-First:** RESTful API to support multiple interfaces (CLI, web, mobile)
+- **API-First:** RESTful API with OpenAPI documentation to support React frontend and future interfaces
 - **Extensible:** Plugin architecture for adding new sources and analysis tools
 - **Monitoring:** Comprehensive logging and performance monitoring
+- **Frontend Architecture:** Component-based React architecture with TypeScript for type safety
 
 ### Performance Requirements
-- **Response Time:** <5 seconds for standard queries, <10 seconds for complex analysis
+- **Backend Response Time:** <5 seconds for standard queries, <10 seconds for complex analysis
+- **Frontend Performance:** <3 seconds initial load time, <100ms UI interactions
+- **Bundle Size:** React app <500KB gzipped for optimal load times
 - **Throughput:** Support 50+ concurrent users
 - **Availability:** 99% uptime during business hours
 - **Scalability:** Handle 10K+ articles in vector database
+- **Responsive Design:** Support mobile, tablet, and desktop viewports (320px-1920px+)
 
 ### Data Requirements
 - **Article Retention:** Store articles for 90 days minimum
 - **User Data:** Maintain user preferences and interaction history
 - **Compliance:** Implement data privacy controls (GDPR-ready)
 - **Backup:** Daily backups with 30-day retention
+- **Accessibility:** WCAG 2.1 AA compliance for inclusive design
+- **Security:** HTTPS encryption, secure API endpoints, input sanitization
 
 ### Technology Stack
 
 **Core Infrastructure:**
 - **Backend:** Python + FastAPI
-- **Vector Database:** ChromaDB (Phase 1) → Qdrant (Phase 2+)
-- **LLM:** OpenAI GPT-4 or Claude
+- **Frontend:** React + TypeScript with Vite
+- **Vector Database:** ChromaDB (persistent mode)
+- **LLM:** Claude (via LangChain Anthropic integration)
 - **Orchestration:** LangChain + LangSmith
-- **Storage:** SQLite (Phase 1) → PostgreSQL (Phase 2+)
+- **Storage:** PostgreSQL (with optional pgvector for future hybrid search)
+
+**Frontend Technologies:**
+- **Build Tool:** Vite (fast development and builds)
+- **Styling:** Tailwind CSS for rapid UI development
+- **State Management:** Zustand or Redux Toolkit
+- **API Client:** TanStack Query (React Query) for data fetching and caching
+- **Type Safety:** TypeScript for both frontend and backend
+
+**Development Tools:**
+- **Python Package Management:** Poetry
+- **Database ORM:** SQLAlchemy
+- **Frontend Package Management:** npm/yarn
+- **Containerization:** Docker + Docker Compose
+- **Environment Management:** .env files for configuration
 
 **Data Sources:**
 - **News APIs:** NewsAPI, Guardian API, Reddit API
@@ -234,9 +255,61 @@ The News Summary Agent is a RAG + agentic application that transforms how users 
 - **Social Media:** Twitter API for trending topics
 
 **Deployment:**
-- **Development:** Local Docker setup
+- **Development:** Docker Compose with PostgreSQL container
 - **Production:** Cloud deployment (AWS/GCP) with Docker containers
 - **Monitoring:** LangSmith + custom dashboards
+
+### RAG Implementation Strategy
+
+The News Summary Agent implements Retrieval-Augmented Generation (RAG) as its core pattern for intelligent news analysis. Here's how RAG enhances each feature:
+
+**Core RAG Workflow:**
+1. **Retrieval:** ChromaDB vector search finds relevant articles based on user queries
+2. **Augmentation:** Retrieved articles + user context → structured prompt for Claude
+3. **Generation:** Claude produces intelligent, context-aware responses with citations
+
+**RAG Applications by Feature:**
+
+**F1.2 Semantic Search:**
+- Embed user query → ChromaDB similarity search → rank and filter results
+- Augment with user preferences and search history
+- Generate explanatory search results with context
+
+**F1.3 Article Summarization:**
+- Retrieve related articles and background context
+- Augment target article with broader context and historical information
+- Generate multi-layered summaries (key facts, implications, connections)
+
+**F2.1 Multi-Perspective Analysis:**
+- Retrieve articles from diverse sources on the same topic
+- Augment with source credibility data and bias information
+- Generate comparative analysis highlighting agreements and disagreements
+
+**F2.2 Personalized Briefings:**
+- Retrieve articles matching user interests and reading history
+- Augment with user preference profile and interaction patterns
+- Generate customized news briefings with relevant prioritization
+
+**F2.3 Context & Background:**
+- Retrieve historical articles and related events from vector database
+- Augment current events with chronological context and connections
+- Generate comprehensive background explanations and timelines
+
+**Technical RAG Implementation:**
+```python
+# Example RAG flow for multi-perspective analysis:
+1. User Query: "How are sources covering AI regulation?"
+2. Vector Retrieval: ChromaDB finds 15+ relevant articles across sources
+3. Context Augmentation: Articles + source metadata + user profile → prompt
+4. Claude Generation: Structured analysis comparing perspectives with citations
+5. Response: Multi-perspective breakdown with source transparency
+```
+
+**RAG Data Pipeline:**
+- **Ingestion:** RSS feeds → article processing → embedding generation → ChromaDB storage
+- **Retrieval:** Query embedding → similarity search → relevance ranking → context preparation
+- **Generation:** LangChain orchestration → Claude API → response post-processing
+- **Feedback:** User interactions → preference learning → improved retrieval weighting
 
 ---
 
@@ -251,12 +324,13 @@ The News Summary Agent is a RAG + agentic application that transforms how users 
 - CLI interface for testing
 
 ### Phase 2: Core Agent (Weeks 3-4)
-**Goal:** Intelligent analysis and personalization  
+**Goal:** Intelligent analysis and personalization
 **Deliverables:**
 - Multi-perspective analysis
 - Personalized briefings
 - Context and background information
-- Web interface (Streamlit)
+- React web interface with responsive design
+- Advanced UI components (article cards, comparison views, interactive briefings)
 
 ### Phase 3: Advanced Features (Weeks 5-8)
 **Goal:** Sophisticated analysis and proactive features  
@@ -267,12 +341,13 @@ The News Summary Agent is a RAG + agentic application that transforms how users 
 - Alert system
 
 ### Phase 4: Polish & Scale (Weeks 9-12)
-**Goal:** Production-ready deployment  
+**Goal:** Production-ready deployment
 **Deliverables:**
-- Performance optimization
-- Enhanced UI/UX
-- Production deployment
-- Documentation and testing
+- Frontend performance optimization (code splitting, lazy loading)
+- Enhanced UI/UX with accessibility compliance
+- Production deployment with CI/CD pipeline
+- Comprehensive testing (unit, integration, E2E)
+- User documentation and API documentation
 
 ---
 
@@ -348,9 +423,20 @@ The News Summary Agent is a RAG + agentic application that transforms how users 
 
 ### C. Technical Architecture Diagram
 ```
-[User Interface] → [API Gateway] → [Agent Orchestrator]
-                                          ↓
-[RAG System] ← → [Vector DB] + [Article Store] + [User Preferences]
-    ↓
-[Tool Suite] → [Summarizer, Analyzer, Searcher, Context Builder]
+[React Frontend] → [FastAPI Backend] → [LangChain Agent Orchestrator]
+    ↓                    ↓                          ↓
+[TanStack Query] → [REST API Endpoints] → [RAG Pipeline]
+[State Management]   [Authentication]              ↓
+[Tailwind UI]       [Input Validation]    [ChromaDB Vector Search]
+                                                   ↓
+                    [PostgreSQL] ← → [Article Store + User Preferences]
+                         ↓                        ↓
+                    [SQLAlchemy ORM]      [Claude LLM Integration]
+                                                   ↓
+                    [Tool Suite] → [Summarizer, Multi-Perspective Analyzer,
+                                  Context Builder, Briefing Generator]
+
+Data Flow:
+RSS Feeds → Article Ingestion → Embedding Generation → ChromaDB Storage
+User Query → Vector Search → Context Augmentation → Claude Generation → React UI
 ```
