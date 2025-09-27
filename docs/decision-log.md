@@ -1,0 +1,140 @@
+# Decision Log
+
+**Purpose**: Track important architectural and technical decisions made during development.
+
+## Decision Format
+- **Date**: When the decision was made
+- **Decision**: What was decided
+- **Context**: Why the decision was needed
+- **Rationale**: Reasoning behind the choice
+- **Alternatives**: Other options considered
+- **Status**: Current status of the decision
+
+---
+
+## 2025-09-27: Frontend Framework Selection
+
+**Decision**: Use React + TypeScript instead of Streamlit
+**Context**: Need for user interface that can scale beyond simple prototyping
+**Rationale**:
+- Streamlit too limited for custom UI components and professional design
+- React provides flexibility for complex news analysis interfaces
+- TypeScript adds type safety and better development experience
+- Rich ecosystem for data visualization and responsive design
+
+**Alternatives Considered**:
+- Streamlit (too limited)
+- Gradio (similar limitations to Streamlit)
+- Vue.js (less mature ecosystem for our use case)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-09-27: Database Strategy
+
+**Decision**: Start with PostgreSQL instead of SQLite migration path
+**Context**: Need for production-ready database with concurrent access
+**Rationale**:
+- Avoid migration complexity from SQLite to PostgreSQL
+- Better concurrent user support for future scaling
+- JSON field support for flexible article metadata
+- pgvector integration potential for hybrid search
+
+**Alternatives Considered**:
+- SQLite → PostgreSQL migration (adds complexity)
+- NoSQL databases like MongoDB (less structured query needs)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-09-27: LLM Provider Selection
+
+**Decision**: Use Claude via LangChain Anthropic integration
+**Context**: Need reliable, high-quality LLM for news analysis and summarization
+**Rationale**:
+- Excellent reasoning capabilities for multi-perspective analysis
+- Large context window for processing multiple articles
+- Good cost-performance ratio for personal project
+- Strong integration with LangChain ecosystem
+
+**Alternatives Considered**:
+- OpenAI GPT-4 (higher costs, similar capabilities)
+- Local models (complex setup, hardware requirements)
+- Cohere (less mature ecosystem)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-09-27: Vector Database Choice
+
+**Decision**: ChromaDB in persistent mode
+**Context**: Need vector storage for RAG patterns with article embeddings
+**Rationale**:
+- Simple setup and maintenance for personal project
+- Excellent LangChain integration out of the box
+- Persistent mode provides data durability
+- No ongoing hosting costs like cloud solutions
+
+**Alternatives Considered**:
+- Pinecone (ongoing hosting costs)
+- Qdrant (more complex setup)
+- Weaviate (overkill for current requirements)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-09-27: Build Tool Selection
+
+**Decision**: Use Vite instead of Create React App
+**Context**: Need fast development server and optimized production builds
+**Rationale**:
+- Significantly faster development server with HMR
+- Better build performance and smaller bundles
+- Modern ES modules support
+- More active development than CRA
+
+**Alternatives Considered**:
+- Create React App (slower, less actively maintained)
+- Webpack (more complex configuration)
+- Parcel (less ecosystem support)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-09-27: State Management Approach
+
+**Decision**: Zustand for client state, TanStack Query for server state
+**Context**: Need simple state management without Redux complexity
+**Rationale**:
+- Zustand: Minimal boilerplate, TypeScript-first, perfect for simple apps
+- TanStack Query: Excellent caching, background updates, perfect for REST APIs
+- Separation of concerns between client and server state
+
+**Alternatives Considered**:
+- Redux Toolkit (too complex for current needs)
+- Context API only (no caching, complex for server state)
+- Jotai (similar to Zustand but prefer Zustand's approach)
+
+**Status**: ✅ Implemented
+
+---
+
+## Future Decisions to Track
+
+### Pending Decisions
+- **Authentication Strategy**: JWT, OAuth, or session-based
+- **Deployment Platform**: AWS, GCP, or self-hosted
+- **Monitoring Solution**: Custom dashboards vs. third-party services
+- **Testing Strategy**: Unit, integration, and E2E testing approaches
+
+### Decision Criteria for Future Choices
+1. **Simplicity**: Favor simple solutions for personal project scope
+2. **Cost Effectiveness**: Minimize ongoing operational costs
+3. **Development Speed**: Optimize for rapid iteration and feedback
+4. **Scalability**: Don't over-engineer but keep options open
+5. **Maintainability**: Choose technologies with good documentation and community support
