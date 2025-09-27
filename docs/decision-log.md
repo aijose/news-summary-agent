@@ -124,6 +124,27 @@
 
 ---
 
+## 2025-09-27: Python Package Management Tool
+
+**Decision**: Use uv instead of Poetry for Python package management
+**Context**: Need for fast, modern Python dependency management and virtual environment handling
+**Rationale**:
+- Significantly faster installation and dependency resolution (10-100x faster than pip/Poetry)
+- Built with Rust for performance and reliability
+- Drop-in replacement for pip with better dependency resolution
+- Built-in virtual environment management
+- Single tool for multiple package management tasks
+- Modern tool designed for current Python ecosystem
+
+**Alternatives Considered**:
+- Poetry (slower, more complex for simple projects)
+- pip + venv (manual virtual environment management)
+- pipenv (less actively maintained, slower)
+
+**Status**: ✅ Implemented
+
+---
+
 ## Future Decisions to Track
 
 ### Pending Decisions

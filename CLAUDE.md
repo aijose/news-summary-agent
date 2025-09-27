@@ -12,8 +12,6 @@ This is the News Summary Agent - an intelligent news aggregation and analysis sy
 1. **Update docs/project-status.md**:
    - Current development phase and progress
    - Recently completed features/tasks
-   - Next planned development steps
-   - Any blockers or technical challenges
 
 2. **Update docs/decision-log.md**:
    - Log any architectural or technical decisions made
@@ -54,7 +52,7 @@ This is the News Summary Agent - an intelligent news aggregation and analysis sy
 
 ### Development
 - **Containerization**: Docker + Docker Compose
-- **Package Management**: Poetry (Python), npm/yarn (Frontend)
+- **Package Management**: uv (Python), npm/yarn (Frontend)
 - **Database ORM**: SQLAlchemy
 
 ## Project Structure

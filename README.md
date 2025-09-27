@@ -32,7 +32,7 @@ The News Summary Agent combines intelligent article retrieval with AI-powered an
 
 ### Development
 - **Containerization**: Docker + Docker Compose
-- **Package Management**: Poetry (Python), npm/yarn (Frontend)
+- **Package Management**: uv (Python), npm/yarn (Frontend)
 - **Database ORM**: SQLAlchemy
 
 ## Project Structure
@@ -90,7 +90,7 @@ Comprehensive project documentation is available in the `docs/` folder:
 - Python 3.9+
 - Node.js 18+
 - Docker & Docker Compose
-- Poetry (Python package management)
+- uv (Python package management)
 
 ### Quick Start (Planned)
 ```bash
@@ -102,13 +102,13 @@ cd news-summary-agent
 docker-compose up -d
 
 # Install backend dependencies
-cd backend && poetry install
+cd backend && uv venv && uv pip install -r requirements.txt
 
 # Install frontend dependencies
 cd frontend && npm install
 
 # Start development servers
-# Backend: poetry run uvicorn main:app --reload
+# Backend: uv run uvicorn main:app --reload
 # Frontend: npm run dev
 ```
 

@@ -42,10 +42,11 @@ The News Summary Agent uses a modern, scalable tech stack optimized for AI-power
   - Simple setup and maintenance
 
 ### Development Tools
-- **Poetry**: Python dependency management
-  - Deterministic builds with lock files
-  - Virtual environment management
-  - Better dependency resolution than pip
+- **uv**: Modern Python package management
+  - Extremely fast installation and dependency resolution
+  - Built-in virtual environment management
+  - Drop-in replacement for pip and pip-tools
+  - Better performance than Poetry and pip
 - **SQLAlchemy**: Database ORM
   - Type-safe database interactions
   - Migration management with Alembic
@@ -101,7 +102,7 @@ The News Summary Agent uses a modern, scalable tech stack optimized for AI-power
   - Simplified development workflow
 
 ### Package Management
-- **Poetry** (Python): Dependency management and virtual environments
+- **uv** (Python): Modern, fast dependency management and virtual environments
 - **npm/yarn** (Frontend): Node.js package management
 
 ## Architecture Decisions
@@ -129,6 +130,12 @@ The News Summary Agent uses a modern, scalable tech stack optimized for AI-power
 - **Context Window**: Large context for multi-article analysis
 - **Safety**: Built-in safety features for content analysis
 - **API Stability**: Reliable service with good rate limits
+
+### Why uv over Poetry?
+- **Performance**: 10-100x faster than pip and Poetry for installations
+- **Simplicity**: Single tool for package management and virtual environments
+- **Modern**: Built with Rust, designed for speed and reliability
+- **Compatibility**: Drop-in replacement for pip with better dependency resolution
 
 ## Alternative Considerations
 
