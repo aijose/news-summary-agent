@@ -5,10 +5,12 @@ This directory contains comprehensive documentation for the News Summary Agent p
 ## Documentation Structure
 
 ### Core Documentation
-- **[Architecture](./architecture.md)** - System design, components, and data flow
-- **[RAG Implementation](./rag-implementation.md)** - Detailed RAG patterns and workflows
-- **[API Reference](./api-reference.md)** - Backend API endpoints and schemas
-- **[Development Guide](./development-guide.md)** - Setup, contribution guidelines, and best practices
+- **[Implementation Plan](./implementation-plan.md)** - Detailed Phase 1 MVP implementation tasks
+- **[Implementation Roadmap](./implementation-roadmap.md)** - Complete 12-week development timeline
+- **[Development Guide](./development-guide.md)** - Setup, workflow, and development best practices
+- **[Architecture](./architecture.md)** - System design, components, and data flow (planned)
+- **[RAG Implementation](./rag-implementation.md)** - Detailed RAG patterns and workflows (planned)
+- **[API Reference](./api-reference.md)** - Backend API endpoints and schemas (planned)
 
 ### Project Planning
 - **[Project Status](./project-status.md)** - Current development status and milestones
