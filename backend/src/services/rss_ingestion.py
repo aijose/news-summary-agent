@@ -231,7 +231,7 @@ class RSSIngestionService:
                 url=article_data['url'],
                 source=article_data['source'],
                 published_date=article_data['published_date'],
-                metadata=article_data['metadata'],
+                article_metadata=article_data['metadata'],
                 content_hash=article_data['content_hash']
             )
 
@@ -341,7 +341,7 @@ class RSSIngestionService:
         Returns:
             Overall ingestion results
         """
-        feed_urls = settings.RSS_FEEDS.split(',') if settings.RSS_FEEDS else []
+        feed_urls = settings.RSS_FEEDS_LIST
         if not feed_urls:
             logger.warning("No RSS feeds configured")
             return {'error': 'No RSS feeds configured'}

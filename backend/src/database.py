@@ -67,7 +67,10 @@ class Article(Base):
     url = Column(String(1000), unique=True, nullable=False, index=True)
 
     # Metadata stored as JSON for flexibility
-    metadata = Column(JSON, default=dict)
+    article_metadata = Column("metadata", JSON, default=dict)
+
+    # Content hash for deduplication
+    content_hash = Column(String(32), unique=True, nullable=True, index=True)
 
     # Timestamps
     created_at = Column(DateTime, default=func.now(), nullable=False)
@@ -85,7 +88,8 @@ class Article(Base):
             "source": self.source,
             "published_date": self.published_date.isoformat() if self.published_date else None,
             "url": self.url,
-            "metadata": self.metadata or {},
+            "metadata": self.article_metadata or {},
+            "content_hash": self.content_hash,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
@@ -145,6 +149,7 @@ class Summary(Base):
     # Summary metadata
     word_count = Column(Integer, nullable=False)
     confidence_score = Column(Integer, default=0)  # 0-100 quality score
+    summary_metadata = Column("metadata", JSON, default=dict)
 
     # Timestamps
     created_at = Column(DateTime, default=func.now(), nullable=False)

@@ -43,8 +43,8 @@ class ArticleResponse(BaseModel):
     published_date: Optional[datetime]
     created_at: datetime
     updated_at: datetime
-    metadata: Optional[Dict[str, Any]]
-    content_hash: Optional[str]
+    metadata: Optional[Dict[str, Any]] = None
+    content_hash: Optional[str] = None
 
     class Config:
         from_attributes = True

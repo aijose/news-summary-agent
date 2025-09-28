@@ -41,15 +41,9 @@ class VectorStoreService:
             persist_dir = settings.CHROMA_PERSIST_DIR
             os.makedirs(persist_dir, exist_ok=True)
 
-            # Initialize ChromaDB client with persistent storage
+            # Initialize ChromaDB client with persistent storage (updated configuration)
             self.client = chromadb.PersistentClient(
-                path=persist_dir,
-                settings=Settings(
-                    # Use DuckDB + Parquet for persistence
-                    chroma_db_impl="duckdb+parquet",
-                    persist_directory=persist_dir,
-                    anonymized_telemetry=False  # Disable telemetry for privacy
-                )
+                path=persist_dir
             )
 
             # Initialize embedding function
@@ -94,9 +88,29 @@ class VectorStoreService:
                 "url": article.url,
                 "created_at": article.created_at.isoformat() if article.created_at else None,
                 "content_length": len(article.content),
-                # Add custom metadata if available
-                **article.metadata if article.metadata else {}
             }
+
+            # Add custom metadata if available (filter out complex types for ChromaDB compatibility)
+            if article.article_metadata:
+                for key, value in article.article_metadata.items():
+                    # ChromaDB supports basic types: str, int, float, bool
+                    # Skip None, empty collections, and complex objects
+                    if value is not None:
+                        if isinstance(value, (str, int, float, bool)):
+                            metadata[key] = value
+                        elif isinstance(value, list):
+                            # Skip empty lists, convert non-empty lists to comma-separated string
+                            if len(value) > 0 and all(isinstance(item, (str, int, float, bool)) for item in value):
+                                metadata[key] = ",".join(str(item) for item in value)
+                        elif isinstance(value, dict):
+                            # Skip empty dicts, convert non-empty dicts to JSON string
+                            if len(value) > 0:
+                                try:
+                                    import json
+                                    metadata[key] = json.dumps(value)
+                                except (TypeError, ValueError):
+                                    # Skip if can't serialize
+                                    pass
 
             # Add to collection
             self.collection.add(

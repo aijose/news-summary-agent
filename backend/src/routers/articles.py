@@ -8,6 +8,7 @@ search, management, and related operations.
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 import logging
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/articles", tags=["articles"])
 
 
-@router.get("/", response_model=ArticleListResponse)
+@router.get("/")
 async def get_articles(
     skip: int = Query(0, ge=0, description="Number of articles to skip"),
     limit: int = Query(10, ge=1, le=100, description="Number of articles to return"),
@@ -66,19 +67,19 @@ async def get_articles(
         # Get total count for pagination
         total_count = query.count()
 
-        return ArticleListResponse(
-            articles=[ArticleResponse.from_orm(article) for article in articles],
-            total=total_count,
-            skip=skip,
-            limit=limit
-        )
+        return {
+            "articles": [article.to_dict() for article in articles],
+            "total": total_count,
+            "skip": skip,
+            "limit": limit
+        }
 
     except Exception as e:
         logger.error(f"Error retrieving articles: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve articles")
 
 
-@router.get("/{article_id}", response_model=ArticleResponse)
+@router.get("/{article_id}")
 async def get_article(article_id: int, db: Session = Depends(get_db)):
     """
     Retrieve a specific article by ID.
@@ -91,7 +92,7 @@ async def get_article(article_id: int, db: Session = Depends(get_db)):
         if not article:
             raise HTTPException(status_code=404, detail="Article not found")
 
-        return ArticleResponse.from_orm(article)
+        return article.to_dict()
 
     except HTTPException:
         raise
@@ -364,7 +365,7 @@ async def get_article_stats(db: Session = Depends(get_db)):
         recent_articles = db.query(Article).filter(Article.created_at >= cutoff_24h).count()
 
         # Articles by source
-        source_stats = db.query(Article.source, db.func.count(Article.id)).group_by(Article.source).all()
+        source_stats = db.query(Article.source, func.count(Article.id)).group_by(Article.source).all()
 
         # Vector store stats
         vector_store = get_vector_store()

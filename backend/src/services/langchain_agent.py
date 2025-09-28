@@ -310,7 +310,8 @@ class NewsAnalysisAgent:
                 article_id=article.id,
                 summary_text=result,
                 summary_type=summary_type,
-                metadata=summary_data
+                word_count=len(result.split()),
+                summary_metadata=summary_data
             )
             db.add(summary)
             db.commit()

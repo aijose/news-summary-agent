@@ -42,9 +42,9 @@ class Settings(BaseSettings):
     API_WORKERS: int = Field(default=1, description="Number of API workers")
 
     # CORS Configuration
-    CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
-        description="Allowed CORS origins for frontend"
+    CORS_ORIGINS: str = Field(
+        default="http://localhost:3000,http://127.0.0.1:3000",
+        description="Allowed CORS origins for frontend (comma-separated)"
     )
 
     # Logging Configuration
@@ -54,15 +54,9 @@ class Settings(BaseSettings):
     )
 
     # RSS Feed Configuration
-    RSS_FEEDS: List[str] = Field(
-        default=[
-            "http://feeds.bbci.co.uk/news/rss.xml",
-            "https://feeds.reuters.com/reuters/topNews",
-            "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-            "https://www.theguardian.com/world/rss",
-            "https://feeds.washingtonpost.com/rss/world"
-        ],
-        description="List of RSS feed URLs to ingest"
+    RSS_FEEDS: str = Field(
+        default="http://feeds.bbci.co.uk/news/rss.xml,https://feeds.reuters.com/reuters/topNews,https://rss.nytimes.com/services/xml/rss/nyt/World.xml,https://www.theguardian.com/world/rss,https://feeds.washingtonpost.com/rss/world",
+        description="Comma-separated list of RSS feed URLs to ingest"
     )
 
     # Ingestion Configuration
@@ -96,6 +90,20 @@ class Settings(BaseSettings):
         default=60,
         description="API rate limit per minute per client"
     )
+
+    @property
+    def CORS_ORIGINS_LIST(self) -> List[str]:
+        """Convert CORS_ORIGINS string to list."""
+        if not self.CORS_ORIGINS:
+            return []
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @property
+    def RSS_FEEDS_LIST(self) -> List[str]:
+        """Convert RSS_FEEDS string to list."""
+        if not self.RSS_FEEDS:
+            return []
+        return [feed.strip() for feed in self.RSS_FEEDS.split(",") if feed.strip()]
 
     class Config:
         """Pydantic configuration."""
