@@ -1,6 +1,30 @@
-import { Search as SearchIcon, TrendingUp, Clock, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw } from 'lucide-react'
+import { ArticleList } from '@/components/articles/ArticleList'
+import { useArticles } from '@/hooks/useArticles'
 
 export function Home() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate()
+
+  const { articles, isLoading, error, hasMore, loadMore, refresh } = useArticles({
+    limit: 6,
+    hours_back: 24,
+    autoLoad: true
+  })
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
+  const handleRefresh = () => {
+    refresh()
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -15,19 +39,24 @@ export function Home() {
           </p>
 
           {/* Quick Search */}
-          <div className="max-w-2xl mx-auto mb-8">
+          <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8">
             <div className="relative">
               <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for news topics, events, or keywords..."
                 className="input w-full pl-12 pr-4 py-4 text-lg"
               />
-              <button className="btn-primary absolute right-2 top-1/2 transform -translate-y-1/2">
+              <button
+                type="submit"
+                className="btn-primary absolute right-2 top-1/2 transform -translate-y-1/2"
+              >
                 Search
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Features */}
@@ -63,14 +92,50 @@ export function Home() {
           </div>
         </div>
 
+        {/* Recent Articles Section */}
+        <div className="bg-white rounded-lg shadow-sm p-8 mb-16">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Latest News</h2>
+            <button
+              onClick={handleRefresh}
+              className="btn-outline flex items-center space-x-2"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <ArticleList
+            articles={articles}
+            isLoading={isLoading}
+            error={error}
+            title=""
+            showLoadMore={hasMore}
+            onLoadMore={loadMore}
+            compact={true}
+          />
+
+          {articles.length > 0 && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => navigate('/search')}
+                className="btn-primary"
+              >
+                Search All Articles
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Status Notice */}
-        <div className="card p-6 bg-yellow-50 border-yellow-200">
+        <div className="card p-6 bg-green-50 border-green-200">
           <div className="flex items-center">
-            <div className="w-3 h-3 bg-yellow-400 rounded-full mr-3 animate-pulse"></div>
+            <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
             <div>
-              <h4 className="font-semibold text-yellow-800">Development Status</h4>
-              <p className="text-yellow-700">
-                Phase 1 MVP in development. Basic search and summarization features coming soon.
+              <h4 className="font-semibold text-green-800">System Status</h4>
+              <p className="text-green-700">
+                Phase 2 Core Agent operational. Search functionality and article listings now available.
               </p>
             </div>
           </div>
