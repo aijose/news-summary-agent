@@ -209,21 +209,6 @@ function SearchResultCard({
           <p className="text-sm text-blue-700">{result.ai_summary}</p>
         </div>
       )}
-
-      {result.metadata && Object.keys(result.metadata).length > 0 && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(result.metadata).map(([key, value]) => (
-              <span
-                key={key}
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
-              >
-                {key}: {String(value)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
