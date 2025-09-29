@@ -1,9 +1,20 @@
+import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { SearchInput } from '@/components/search/SearchInput'
 import { SearchResults } from '@/components/search/SearchResults'
 import { useSearch } from '@/hooks/useSearch'
 
 export function Search() {
   const { searchResponse, isLoading, error, search, clearSearch } = useSearch()
+  const [searchParams] = useSearchParams()
+
+  // Auto-search if query parameter is present
+  useEffect(() => {
+    const query = searchParams.get('q')
+    if (query && query.trim()) {
+      search(query.trim())
+    }
+  }, [searchParams, search])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -16,7 +27,11 @@ export function Search() {
       </div>
 
       <div className="space-y-6">
-        <SearchInput onSearch={search} isLoading={isLoading} />
+        <SearchInput
+          onSearch={search}
+          isLoading={isLoading}
+          initialQuery={searchParams.get('q') || ''}
+        />
 
         <SearchResults
           searchResponse={searchResponse}

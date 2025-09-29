@@ -1,14 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 interface SearchInputProps {
   onSearch: (query: string, useAi: boolean) => void
   isLoading?: boolean
+  initialQuery?: string
 }
 
-export function SearchInput({ onSearch, isLoading = false }: SearchInputProps) {
-  const [query, setQuery] = useState('')
+export function SearchInput({ onSearch, isLoading = false, initialQuery = '' }: SearchInputProps) {
+  const [query, setQuery] = useState(initialQuery)
   const [useAi, setUseAi] = useState(false)
+
+  // Update query when initialQuery changes
+  useEffect(() => {
+    setQuery(initialQuery)
+  }, [initialQuery])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

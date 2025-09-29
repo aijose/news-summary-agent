@@ -11,7 +11,6 @@ export function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/search', label: 'Search', icon: Search },
   ]
 
   return (
