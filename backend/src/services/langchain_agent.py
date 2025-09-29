@@ -153,6 +153,55 @@ class NewsAnalysisAgent:
             """
         )
 
+        # Multi-perspective analysis chain
+        self.multi_perspective_prompt = PromptTemplate(
+            input_variables=["articles_content", "analysis_focus"],
+            template="""
+            Analyze the following news articles from multiple perspectives on the topic: {analysis_focus}
+
+            Articles:
+            {articles_content}
+
+            Provide a comprehensive multi-perspective analysis that includes:
+
+            1. **Source Diversity Analysis**:
+               - Different news sources and their typical editorial perspectives
+               - Geographic and cultural viewpoints represented
+               - Potential biases or limitations in coverage
+
+            2. **Perspective Breakdown**:
+               - Conservative/traditional viewpoint
+               - Progressive/liberal viewpoint
+               - Economic/business perspective
+               - Social/humanitarian perspective
+               - International/global perspective
+               - Expert/technical perspective
+
+            3. **Key Points of Convergence**:
+               - Facts and claims that most sources agree on
+               - Shared concerns or priorities across perspectives
+
+            4. **Key Points of Divergence**:
+               - Where sources disagree or emphasize different aspects
+               - Conflicting interpretations or predictions
+               - Different proposed solutions or responses
+
+            5. **Missing Perspectives**:
+               - Important viewpoints not represented in these articles
+               - Stakeholder groups whose voices may be absent
+               - Geographical or demographic gaps in coverage
+
+            6. **Synthesis and Insights**:
+               - Balanced understanding of the issue
+               - Implications for different stakeholder groups
+               - Recommended follow-up questions or areas for further investigation
+
+            Format the response with clear headers and bullet points for easy reading.
+
+            Multi-Perspective Analysis:
+            """
+        )
+
         if self.llm:
             self.summarization_chain = LLMChain(
                 llm=self.llm,
@@ -169,6 +218,12 @@ class NewsAnalysisAgent:
             self.comparison_chain = LLMChain(
                 llm=self.llm,
                 prompt=self.comparison_prompt,
+                verbose=False
+            )
+
+            self.multi_perspective_chain = LLMChain(
+                llm=self.llm,
+                prompt=self.multi_perspective_prompt,
                 verbose=False
             )
 
@@ -456,6 +511,88 @@ class NewsAnalysisAgent:
             logger.error(f"Error comparing articles: {e}")
             return None
 
+    async def analyze_multiple_perspectives(
+        self,
+        article_ids: List[int],
+        analysis_focus: str = "the main topic"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Analyze multiple articles from different perspectives on a topic.
+
+        Args:
+            article_ids: List of article IDs to analyze
+            analysis_focus: The topic or focus area for the analysis
+
+        Returns:
+            Multi-perspective analysis data
+        """
+        try:
+            if len(article_ids) > 10:
+                return {'error': 'Maximum 10 articles allowed for multi-perspective analysis'}
+
+            db = SessionLocal()
+            articles = db.query(Article).filter(Article.id.in_(article_ids)).all()
+            db.close()
+
+            if len(articles) < 2:
+                return {'error': 'Minimum 2 articles required for multi-perspective analysis'}
+
+            if not self.llm:
+                # Return mock analysis if LLM not available
+                return {
+                    'analysis_text': f"Mock multi-perspective analysis of {len(articles)} articles on {analysis_focus}",
+                    'articles_analyzed': len(articles),
+                    'analysis_focus': analysis_focus,
+                    'source_diversity': ['Mock Source 1', 'Mock Source 2'],
+                    'perspectives_covered': ['Conservative', 'Progressive', 'Economic', 'Social'],
+                    'generated_at': datetime.now(timezone.utc).isoformat()
+                }
+
+            # Prepare articles content for analysis
+            articles_content = "\n\n".join([
+                f"Article {i+1}:\nTitle: {article.title}\nSource: {article.source}\nURL: {article.url}\nContent: {article.content[:1000]}..."
+                for i, article in enumerate(articles)
+            ])
+
+            # Generate multi-perspective analysis
+            result = await asyncio.to_thread(
+                self.multi_perspective_chain.run,
+                articles_content=articles_content,
+                analysis_focus=analysis_focus
+            )
+
+            # Extract source diversity information
+            sources = list(set([article.source for article in articles]))
+
+            analysis_data = {
+                'analysis_text': result,
+                'articles_analyzed': len(articles),
+                'analysis_focus': analysis_focus,
+                'article_details': [
+                    {
+                        'id': article.id,
+                        'title': article.title,
+                        'source': article.source,
+                        'url': article.url,
+                        'published_date': article.published_date.isoformat() if article.published_date else None
+                    }
+                    for article in articles
+                ],
+                'source_diversity': sources,
+                'generated_at': datetime.now(timezone.utc).isoformat(),
+                'model_info': {
+                    'model': 'claude-3-sonnet',
+                    'temperature': 0.1
+                }
+            }
+
+            logger.info(f"Generated multi-perspective analysis for {len(articles)} articles on '{analysis_focus}'")
+            return analysis_data
+
+        except Exception as e:
+            logger.error(f"Error in multi-perspective analysis: {e}")
+            return None
+
     async def search_and_summarize(self, query: str, max_results: int = 5) -> Dict[str, Any]:
         """
         Search for articles and provide summarized results.
@@ -539,3 +676,9 @@ async def search_articles_with_ai(query: str, max_results: int = 5) -> Dict[str,
     """Search articles and enhance with AI summaries."""
     agent = get_news_agent()
     return await agent.search_and_summarize(query, max_results)
+
+
+async def analyze_multiple_perspectives(article_ids: List[int], analysis_focus: str = "the main topic") -> Optional[Dict[str, Any]]:
+    """Generate multi-perspective analysis for multiple articles."""
+    agent = get_news_agent()
+    return await agent.analyze_multiple_perspectives(article_ids, analysis_focus)

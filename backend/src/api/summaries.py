@@ -11,6 +11,7 @@ from typing import List, Optional, Literal
 from enum import Enum
 
 from ..database import get_db, Article, Summary
+from ..services.langchain_agent import analyze_multiple_perspectives
 
 router = APIRouter()
 
@@ -92,9 +93,10 @@ async def summarize_article(
 async def summarize_multiple_articles(
     article_ids: List[int],
     length: SummaryLength = Query(SummaryLength.MEDIUM, description="Summary length"),
-    synthesis_style: Literal["individual", "comparative", "unified"] = Query(
+    synthesis_style: Literal["individual", "comparative", "unified", "multi_perspective"] = Query(
         "individual", description="How to combine multiple article summaries"
     ),
+    analysis_focus: str = Query("the main topic", description="Focus area for multi-perspective analysis"),
     db: Session = Depends(get_db)
 ):
     """
@@ -104,14 +106,17 @@ async def summarize_multiple_articles(
         article_ids: List of article IDs to summarize
         length: Desired summary length for each article
         synthesis_style: How to present multiple summaries
+        analysis_focus: Focus area for multi-perspective analysis
         db: Database session
 
     Returns:
         Multiple article summaries with optional synthesis
 
-    Note:
-        This is a placeholder implementation. Full multi-article
-        summarization will be implemented with Claude integration.
+    Synthesis styles:
+        - individual: Separate summaries for each article
+        - comparative: Side-by-side comparison of articles
+        - unified: Single combined summary
+        - multi_perspective: AI-powered multi-perspective analysis
     """
     if len(article_ids) > 10:
         raise HTTPException(
@@ -130,7 +135,37 @@ async def summarize_multiple_articles(
             detail=f"Articles not found: {list(missing_ids)}"
         )
 
-    # TODO: Implement multi-article summarization with synthesis
+    # Handle multi-perspective analysis
+    if synthesis_style == "multi_perspective":
+        try:
+            # Use the AI-powered multi-perspective analysis
+            analysis_result = await analyze_multiple_perspectives(article_ids, analysis_focus)
+
+            if analysis_result and "error" not in analysis_result:
+                return {
+                    "synthesis_style": synthesis_style,
+                    "analysis_focus": analysis_focus,
+                    "total_articles": len(articles),
+                    "multi_perspective_analysis": analysis_result,
+                    "message": "Multi-perspective analysis completed successfully"
+                }
+            else:
+                # Fall back to placeholder if analysis fails
+                error_msg = analysis_result.get("error", "Analysis failed") if analysis_result else "Analysis failed"
+                return {
+                    "synthesis_style": synthesis_style,
+                    "analysis_focus": analysis_focus,
+                    "total_articles": len(articles),
+                    "error": error_msg,
+                    "message": "Multi-perspective analysis failed"
+                }
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error performing multi-perspective analysis: {str(e)}"
+            )
+
+    # TODO: Implement other synthesis styles with LLM integration
     placeholder_summaries = [
         {
             "article_id": article.id,
@@ -146,7 +181,7 @@ async def summarize_multiple_articles(
         "articles": placeholder_summaries,
         "synthesis_style": synthesis_style,
         "total_articles": len(articles),
-        "message": "Multi-article summarization not yet implemented"
+        "message": "Multi-article summarization not yet implemented (except multi_perspective)"
     }
 
     if synthesis_style == "unified":

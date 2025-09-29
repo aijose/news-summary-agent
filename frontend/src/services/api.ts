@@ -115,6 +115,20 @@ export const articleApi = {
       background
     })
     return response.data
+  },
+
+  // Multi-perspective analysis
+  analyzeMultiplePerspectives: async (
+    articleIds: number[],
+    analysisFocus: string = 'the main topic'
+  ) => {
+    const response = await apiClient.post('/summaries/multi-article/', articleIds, {
+      params: {
+        synthesis_style: 'multi_perspective',
+        analysis_focus: analysisFocus
+      }
+    })
+    return response.data
   }
 }
 

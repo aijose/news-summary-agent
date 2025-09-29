@@ -1,13 +1,23 @@
 import type { SearchResponse, SearchResult } from '@/types/article'
-import { ArrowTopRightOnSquareIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { ArrowTopRightOnSquareIcon, SparklesIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 interface SearchResultsProps {
   searchResponse: SearchResponse | null
   isLoading: boolean
   error: string | null
+  selectedArticles?: SearchResult[]
+  onToggleSelection?: (article: SearchResult) => void
+  maxSelections?: number
 }
 
-export function SearchResults({ searchResponse, isLoading, error }: SearchResultsProps) {
+export function SearchResults({
+  searchResponse,
+  isLoading,
+  error,
+  selectedArticles = [],
+  onToggleSelection,
+  maxSelections = 10
+}: SearchResultsProps) {
   if (isLoading) {
     return (
       <div className="card p-6">
@@ -90,14 +100,30 @@ export function SearchResults({ searchResponse, isLoading, error }: SearchResult
 
       <div className="space-y-4">
         {searchResponse.results.map((result) => (
-          <SearchResultCard key={result.article_id} result={result} />
+          <SearchResultCard
+            key={result.article_id}
+            result={result}
+            isSelected={selectedArticles.some(a => a.article_id === result.article_id)}
+            onToggleSelection={onToggleSelection}
+            canSelect={selectedArticles.length < maxSelections || selectedArticles.some(a => a.article_id === result.article_id)}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function SearchResultCard({ result }: { result: SearchResult }) {
+function SearchResultCard({
+  result,
+  isSelected = false,
+  onToggleSelection,
+  canSelect = true
+}: {
+  result: SearchResult
+  isSelected?: boolean
+  onToggleSelection?: (article: SearchResult) => void
+  canSelect?: boolean
+}) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Unknown date'
     try {
@@ -120,13 +146,35 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   }
 
   return (
-    <div className="card p-6 hover:shadow-md transition-shadow">
+    <div className={`card p-6 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-1">
           {result.title}
         </h3>
-        <div className={`ml-4 px-2 py-1 rounded-full text-xs font-medium ${getSimilarityColor(result.similarity_score)}`}>
-          {Math.round(result.similarity_score * 100)}% match
+        <div className="flex items-center space-x-2 ml-4">
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getSimilarityColor(result.similarity_score)}`}>
+            {Math.round(result.similarity_score * 100)}% match
+          </div>
+          {onToggleSelection && (
+            <button
+              onClick={() => onToggleSelection(result)}
+              disabled={!canSelect && !isSelected}
+              className={`p-2 rounded-full transition-colors ${
+                isSelected
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : canSelect
+                  ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+              }`}
+              title={isSelected ? 'Remove from analysis' : canSelect ? 'Add to analysis' : 'Maximum articles selected'}
+            >
+              {isSelected ? (
+                <CheckIcon className="h-4 w-4" />
+              ) : (
+                <PlusIcon className="h-4 w-4" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 

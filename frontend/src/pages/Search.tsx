@@ -1,12 +1,16 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchInput } from '@/components/search/SearchInput'
 import { SearchResults } from '@/components/search/SearchResults'
+import { MultiPerspectiveAnalysis } from '@/components/analysis/MultiPerspectiveAnalysis'
 import { useSearch } from '@/hooks/useSearch'
+import type { SearchResult } from '@/types/article'
 
 export function Search() {
   const { searchResponse, isLoading, error, search, clearSearch } = useSearch()
   const [searchParams] = useSearchParams()
+  const [selectedArticles, setSelectedArticles] = useState<SearchResult[]>([])
+  const [showAnalysis, setShowAnalysis] = useState(false)
 
   // Auto-search if query parameter is present
   useEffect(() => {
@@ -15,6 +19,32 @@ export function Search() {
       search(query.trim())
     }
   }, [searchParams, search])
+
+  // Clear selections when new search is performed
+  useEffect(() => {
+    setSelectedArticles([])
+    setShowAnalysis(false)
+  }, [searchResponse])
+
+  const toggleArticleSelection = (article: SearchResult) => {
+    setSelectedArticles(prev => {
+      const isSelected = prev.some(a => a.article_id === article.article_id)
+      if (isSelected) {
+        return prev.filter(a => a.article_id !== article.article_id)
+      } else {
+        if (prev.length >= 10) {
+          // Max 10 articles for analysis
+          return prev
+        }
+        return [...prev, article]
+      }
+    })
+  }
+
+  const clearSelection = () => {
+    setSelectedArticles([])
+    setShowAnalysis(false)
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -26,30 +56,46 @@ export function Search() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        <SearchInput
-          onSearch={search}
-          isLoading={isLoading}
-          initialQuery={searchParams.get('q') || ''}
-        />
+      <div className="grid lg:grid-cols-4 gap-8">
+        {/* Main search area */}
+        <div className="lg:col-span-3 space-y-6">
+          <SearchInput
+            onSearch={search}
+            isLoading={isLoading}
+            initialQuery={searchParams.get('q') || ''}
+          />
 
-        <SearchResults
-          searchResponse={searchResponse}
-          isLoading={isLoading}
-          error={error}
-        />
-      </div>
+          <SearchResults
+            searchResponse={searchResponse}
+            isLoading={isLoading}
+            error={error}
+            selectedArticles={selectedArticles}
+            onToggleSelection={toggleArticleSelection}
+            maxSelections={10}
+          />
 
-      {searchResponse && (
-        <div className="mt-8 text-center">
-          <button
-            onClick={clearSearch}
-            className="btn-secondary"
-          >
-            Clear Search
-          </button>
+          {searchResponse && (
+            <div className="text-center">
+              <button
+                onClick={clearSearch}
+                className="btn-secondary"
+              >
+                Clear Search
+              </button>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Analysis sidebar */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-8">
+            <MultiPerspectiveAnalysis
+              selectedArticles={selectedArticles}
+              onClearSelection={clearSelection}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

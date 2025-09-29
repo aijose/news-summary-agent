@@ -30,10 +30,10 @@ export function IngestionPanel() {
     try {
       const result = await articleApi.ingestFeeds(undefined, undefined, false) // Run synchronously to get results
 
-      if (result.success) {
+      if (result.status === 'completed') {
         setStatus({
           isRunning: false,
-          message: 'Ingestion completed successfully!',
+          message: `Ingestion completed! ${result.results?.total_new_articles || 0} new articles added.`,
           progress: {
             feedsProcessed: result.results?.feeds_processed || 0,
             totalFeeds: result.results?.feeds_processed || 0,
@@ -42,11 +42,23 @@ export function IngestionPanel() {
             totalFailures: result.results?.total_failures || 0
           }
         })
-      } else {
+      } else if (result.status === 'error') {
         setStatus({
           isRunning: false,
           message: 'Ingestion completed with errors',
-          error: result.error || 'Unknown error occurred'
+          error: result.message || 'Unknown error occurred'
+        })
+      } else {
+        setStatus({
+          isRunning: false,
+          message: `Ingestion status: ${result.status}`,
+          progress: result.results ? {
+            feedsProcessed: result.results.feeds_processed || 0,
+            totalFeeds: result.results.feeds_processed || 0,
+            newArticles: result.results.total_new_articles || 0,
+            totalDuplicates: result.results.total_duplicates || 0,
+            totalFailures: result.results.total_failures || 0
+          } : undefined
         })
       }
     } catch (error) {

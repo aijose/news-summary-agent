@@ -13,6 +13,7 @@ import logging
 from .config import settings
 from .database import engine, Base
 from .routers import articles
+from .api import summaries
 from .utils.logging_config import setup_logging, RequestLoggingMiddleware
 from .utils.error_handling import (
     NewsAgentException,
@@ -74,6 +75,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API routers
 app.include_router(articles.router, prefix="/api/v1")
+app.include_router(summaries.router, prefix="/api/v1/summaries", tags=["summaries"])
 
 
 @app.get("/")
