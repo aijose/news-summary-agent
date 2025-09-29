@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Search, FileText } from 'lucide-react'
+import { Home, Search, FileText, Settings } from 'lucide-react'
 
 interface LayoutProps {
   children: ReactNode
@@ -11,6 +11,8 @@ export function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
+    { path: '/search', label: 'Search', icon: Search },
+    { path: '/admin', label: 'Admin', icon: Settings },
   ]
 
   return (
