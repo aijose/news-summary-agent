@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router-dom'
 import { SearchInput } from '@/components/search/SearchInput'
 import { SearchResults } from '@/components/search/SearchResults'
 import { MultiPerspectiveAnalysis } from '@/components/analysis/MultiPerspectiveAnalysis'
-import { useSearch } from '@/hooks/useSearch'
+import { useSearchMutation } from '@/hooks/useSearchQuery'
 import type { SearchResult } from '@/types/article'
 
 export function Search() {
-  const { searchResponse, isLoading, error, search, clearSearch } = useSearch()
+  const { mutate: performSearch, data: searchResponse, isPending: isLoading, error } = useSearchMutation()
   const [searchParams] = useSearchParams()
   const [selectedArticles, setSelectedArticles] = useState<SearchResult[]>([])
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -16,9 +16,19 @@ export function Search() {
   useEffect(() => {
     const query = searchParams.get('q')
     if (query && query.trim()) {
-      search(query.trim())
+      performSearch({ query: query.trim(), useAi: false })
     }
-  }, [searchParams, search])
+  }, [searchParams, performSearch])
+
+  const handleSearch = (query: string, useAi: boolean) => {
+    performSearch({ query, useAi })
+  }
+
+  const clearSearch = () => {
+    // Clear by resetting component state - searchResponse will remain until next search
+    setSelectedArticles([])
+    setShowAnalysis(false)
+  }
 
   // Clear selections when new search is performed
   useEffect(() => {
@@ -60,15 +70,15 @@ export function Search() {
         {/* Main search area */}
         <div className="lg:col-span-3 space-y-6">
           <SearchInput
-            onSearch={search}
+            onSearch={handleSearch}
             isLoading={isLoading}
             initialQuery={searchParams.get('q') || ''}
           />
 
           <SearchResults
-            searchResponse={searchResponse}
+            searchResponse={searchResponse || null}
             isLoading={isLoading}
-            error={error}
+            error={error instanceof Error ? error.message : error ? String(error) : null}
             selectedArticles={selectedArticles}
             onToggleSelection={toggleArticleSelection}
             maxSelections={10}

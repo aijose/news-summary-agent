@@ -145,6 +145,34 @@
 
 ---
 
+## 2025-09-30: Frontend State Management with TanStack Query
+
+**Decision**: Use TanStack Query (React Query) for server state instead of custom hooks with useState
+**Context**: Need efficient data fetching, caching, and synchronization between frontend and backend
+**Rationale**:
+- Automatic caching reduces unnecessary API calls and improves performance
+- Built-in loading/error states simplify component logic
+- Background refetching keeps data fresh without manual refresh triggers
+- Query invalidation automatically updates related data across components
+- Mutations handle optimistic updates and cache synchronization
+- Superior developer experience with TypeScript integration
+
+**Alternatives Considered**:
+- Custom hooks with useState/useEffect (manual cache management, more boilerplate)
+- SWR (similar but less feature-rich than TanStack Query)
+- Redux + RTK Query (unnecessary complexity for current app size)
+
+**Implementation Details**:
+- Created `useArticlesQuery.ts` with comprehensive query hooks
+- Created `useSearchQuery.ts` for search operations
+- Configured intelligent stale times (2-15 minutes based on data volatility)
+- Implemented automatic cache invalidation on mutations
+- Updated all components (Home, Search, Admin) to use new hooks
+
+**Status**: ✅ Implemented
+
+---
+
 ## Future Decisions to Track
 
 ### Pending Decisions

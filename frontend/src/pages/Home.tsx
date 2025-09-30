@@ -2,17 +2,20 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw } from 'lucide-react'
 import { ArticleList } from '@/components/articles/ArticleList'
-import { useArticles } from '@/hooks/useArticles'
+import { useArticles } from '@/hooks/useArticlesQuery'
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const navigate = useNavigate()
 
-  const { articles, isLoading, error, hasMore, loadMore, refresh } = useArticles({
+  const { data, isLoading, error, refetch } = useArticles({
     limit: 6,
-    hours_back: 24,
-    autoLoad: true
+    hours_back: 24
   })
+
+  const articles = data?.articles || []
+  const total = data?.total || 0
+  const hasMore = articles.length < total
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,8 +25,10 @@ export function Home() {
   }
 
   const handleRefresh = () => {
-    refresh()
+    refetch()
   }
+
+  const errorMessage = error instanceof Error ? error.message : error ? String(error) : null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -109,10 +114,9 @@ export function Home() {
           <ArticleList
             articles={articles}
             isLoading={isLoading}
-            error={error}
+            error={errorMessage}
             title=""
-            showLoadMore={hasMore}
-            onLoadMore={loadMore}
+            showLoadMore={false}
             compact={true}
           />
 
