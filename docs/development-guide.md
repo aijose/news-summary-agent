@@ -33,22 +33,30 @@ ls -la
 
 ### 2. Environment Configuration
 
-```bash
-# Copy environment templates (will be created in Phase 1)
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+**IMPORTANT SECURITY NOTE:** Never commit `.env` files to git. They are already in `.gitignore`.
 
-# Edit environment files with your configuration
-# backend/.env:
-DATABASE_URL=postgresql://newsuser:newspass@localhost:5432/newsdb
-ANTHROPIC_API_KEY=your_claude_api_key_here
+```bash
+# Copy environment template to create your local .env file
+cp backend/.env.example backend/.env
+
+# Edit backend/.env with your actual API key
+# Get your API key from: https://console.anthropic.com/settings/keys
+nano backend/.env  # or use your preferred editor
+
+# Update this line in backend/.env:
+ANTHROPIC_API_KEY=sk-ant-api03-your-actual-api-key-here
+
+# Other settings (already have good defaults):
+DATABASE_URL=sqlite:///./test_newsdb.db  # Using SQLite for simplicity
 CHROMA_PERSIST_DIR=./chroma_db
 LOG_LEVEL=INFO
-
-# frontend/.env:
-VITE_API_BASE_URL=http://localhost:8000
-VITE_API_TIMEOUT=30000
 ```
+
+**Security Checklist Before Committing:**
+- ✅ Verify `.env` is NOT in `git status`
+- ✅ Only commit `.env.example` (with placeholders)
+- ✅ Real API keys only in local `.env` file
+- ❌ NEVER commit files containing `sk-ant-api03-...`
 
 ### 3. Docker Development Environment
 

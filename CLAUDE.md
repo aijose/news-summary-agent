@@ -87,6 +87,30 @@ news-summary-agent/
 - **Progress Visibility**: Clear milestones and current development status
 - **Knowledge Preservation**: Capture learnings and implementation details
 
+## Security Guidelines
+
+### Environment Variables and Secrets
+**CRITICAL - NEVER COMMIT SECRETS TO GIT**
+
+- **`.env` files**: NEVER commit `.env` files containing API keys or secrets
+- **Template files**: Keep `.env.example` updated as a template (with placeholder values only)
+- **API Keys**: Store all API keys in `backend/.env` (already in `.gitignore`)
+- **Setup process**: On new machines, copy `.env.example` to `.env` and add real keys
+
+**Required API Keys:**
+- `ANTHROPIC_API_KEY`: Get from https://console.anthropic.com/settings/keys
+
+**Before Every Commit:**
+1. Verify `.env` is NOT staged: `git status`
+2. If `.env` appears, unstage it: `git restore --staged backend/.env`
+3. Only `.env.example` should be committed (never the actual `.env`)
+
+**Security Checklist:**
+- ✅ `.env` is in `.gitignore`
+- ✅ `.env.example` has placeholder values only
+- ✅ Real API keys only in local `.env` file
+- ❌ NEVER commit files with `ANTHROPIC_API_KEY=sk-ant-api03-...`
+
 ## Current Phase: Planning Complete
 - ✅ PRD finalized with tech stack decisions
 - ✅ Repository structure established
