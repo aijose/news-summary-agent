@@ -64,3 +64,13 @@ export interface ArticleStats {
     last_updated: string
   }
 }
+
+export interface RSSFeed {
+  name: string
+  url: string
+}
+
+export interface RSSFeedCreate {
+  name: string
+  url: string
+}

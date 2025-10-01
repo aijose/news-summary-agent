@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Article, SearchResponse } from '@/types/article'
+import type { Article, SearchResponse, RSSFeed, RSSFeedCreate } from '@/types/article'
 
 // API client configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
@@ -129,6 +129,23 @@ export const articleApi = {
       }
     })
     return response.data
+  },
+
+  // Get RSS feeds
+  getRSSFeeds: async (): Promise<RSSFeed[]> => {
+    const response = await apiClient.get('/rss-feeds')
+    return response.data
+  },
+
+  // Add RSS feed
+  addRSSFeed: async (feed: RSSFeedCreate): Promise<RSSFeed> => {
+    const response = await apiClient.post('/rss-feeds', feed)
+    return response.data
+  },
+
+  // Delete RSS feed
+  deleteRSSFeed: async (feedUrl: string): Promise<void> => {
+    await apiClient.delete(`/rss-feeds/${encodeURIComponent(feedUrl)}`)
   }
 }
 

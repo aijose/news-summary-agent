@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { articleApi } from '@/services/api'
-import type { Article, ArticleListResponse, ArticleSummary } from '@/types/article'
+import type { Article, ArticleListResponse, ArticleSummary, RSSFeed, RSSFeedCreate } from '@/types/article'
 
 // Query keys for React Query
 export const articleKeys = {
@@ -13,6 +13,7 @@ export const articleKeys = {
   similar: (id: number) => [...articleKeys.detail(id), 'similar'] as const,
   stats: () => [...articleKeys.all, 'stats'] as const,
   trending: (hoursBack: number) => [...articleKeys.all, 'trending', hoursBack] as const,
+  rssFeeds: () => ['rss-feeds'] as const,
 }
 
 export interface ArticleFilters {
@@ -181,5 +182,46 @@ export function useMultiPerspectiveAnalysis() {
       articleIds: number[];
       analysisFocus?: string
     }) => articleApi.analyzeMultiplePerspectives(articleIds, analysisFocus),
+  })
+}
+
+/**
+ * Hook for fetching RSS feeds
+ */
+export function useRSSFeeds() {
+  return useQuery({
+    queryKey: articleKeys.rssFeeds(),
+    queryFn: () => articleApi.getRSSFeeds(),
+    staleTime: 5 * 60 * 1000, // 5 minutes - RSS feeds don't change often
+  })
+}
+
+/**
+ * Hook for adding an RSS feed
+ */
+export function useAddRSSFeed() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (feed: RSSFeedCreate) => articleApi.addRSSFeed(feed),
+    onSuccess: () => {
+      // Invalidate RSS feeds list to refetch
+      queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
+    },
+  })
+}
+
+/**
+ * Hook for deleting an RSS feed
+ */
+export function useDeleteRSSFeed() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (feedUrl: string) => articleApi.deleteRSSFeed(feedUrl),
+    onSuccess: () => {
+      // Invalidate RSS feeds list to refetch
+      queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
+    },
   })
 }
