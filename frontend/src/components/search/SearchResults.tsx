@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { SearchResponse, SearchResult } from '@/types/article'
 import { ArrowTopRightOnSquareIcon, SparklesIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { useCreateSummary } from '@/hooks/useArticlesQuery'
 
 interface SearchResultsProps {
   searchResponse: SearchResponse | null
@@ -124,6 +126,9 @@ function SearchResultCard({
   onToggleSelection?: (article: SearchResult) => void
   canSelect?: boolean
 }) {
+  const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
+  const { mutate: createSummary, isPending: isGenerating } = useCreateSummary()
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Unknown date'
     try {
@@ -144,6 +149,20 @@ function SearchResultCard({
     if (score >= 0.6) return 'text-yellow-600 bg-yellow-100'
     return 'text-gray-600 bg-gray-100'
   }
+
+  const handleSummarize = () => {
+    createSummary(
+      { articleId: result.article_id, summaryType: 'comprehensive' },
+      {
+        onSuccess: (data) => {
+          setGeneratedSummary(data.summary_text)
+        }
+      }
+    )
+  }
+
+  const displaySummary = generatedSummary || result.ai_summary
+  const shouldShowSummary = generatedSummary ? true : !!result.ai_summary
 
   return (
     <div className={`card p-6 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
@@ -200,13 +219,44 @@ function SearchResultCard({
 
       <p className="text-gray-700 mb-4 line-clamp-3">{result.snippet}</p>
 
-      {result.ai_summary && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <SparklesIcon className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-800">AI Summary</span>
+      {/* Summarize Button */}
+      {!displaySummary && (
+        <div className="mb-4">
+          <button
+            onClick={handleSummarize}
+            disabled={isGenerating}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <SparklesIcon className="h-4 w-4" />
+            {isGenerating ? 'Generating...' : 'Summarize'}
+          </button>
+        </div>
+      )}
+
+      {/* Display Summary */}
+      {shouldShowSummary && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <div className="text-sm font-medium text-blue-800 mb-2">
+            AI Summary {generatedSummary && <span className="text-xs text-blue-600">(Just generated)</span>}
           </div>
-          <p className="text-sm text-blue-700">{result.ai_summary}</p>
+          <div className="text-sm text-blue-900 prose prose-sm max-w-none">
+            {displaySummary.split('\n').map((line, index) => {
+              // Bold headers (lines starting with **)
+              if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                const text = line.trim().slice(2, -2)
+                return <div key={index} className="font-semibold text-blue-900 mt-3 mb-1">{text}</div>
+              }
+              // Bullet points
+              if (line.trim().startsWith('•')) {
+                return <div key={index} className="ml-4 mb-1">{line.trim()}</div>
+              }
+              // Regular paragraphs
+              if (line.trim()) {
+                return <div key={index} className="mb-2">{line.trim()}</div>
+              }
+              return null
+            })}
+          </div>
         </div>
       )}
     </div>
