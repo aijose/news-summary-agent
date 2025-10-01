@@ -74,3 +74,30 @@ export interface RSSFeedCreate {
   name: string
   url: string
 }
+
+export interface DeleteArticlesRequest {
+  before_date?: string  // ISO 8601 format
+  sources?: string[]
+  delete_summaries?: boolean
+  delete_from_vector_store?: boolean
+}
+
+export interface DeleteArticlesResponse {
+  deleted_count: number
+  deleted_summaries_count: number
+  deleted_from_vector_store: number
+  remaining_articles: number
+  filters_applied: {
+    before_date: string | null
+    sources: string[] | null
+  }
+}
+
+export interface ArticleCountResponse {
+  total_count: number
+  source_breakdown: Record<string, number>
+  filters: {
+    before_date: string | null
+    sources: string[] | null
+  }
+}

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Article, SearchResponse, RSSFeed, RSSFeedCreate } from '@/types/article'
+import type { Article, SearchResponse, RSSFeed, RSSFeedCreate, DeleteArticlesRequest, DeleteArticlesResponse, ArticleCountResponse } from '@/types/article'
 
 // API client configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
@@ -146,6 +146,27 @@ export const articleApi = {
   // Delete RSS feed
   deleteRSSFeed: async (feedUrl: string): Promise<void> => {
     await apiClient.delete(`/rss-feeds/${encodeURIComponent(feedUrl)}`)
+  },
+
+  // Get all sources
+  getAllSources: async (): Promise<string[]> => {
+    const response = await apiClient.get('/admin/sources')
+    return response.data
+  },
+
+  // Get article count preview
+  getArticleCountPreview: async (params: {
+    before_date?: string
+    sources?: string
+  }): Promise<ArticleCountResponse> => {
+    const response = await apiClient.get('/admin/article-count', { params })
+    return response.data
+  },
+
+  // Delete articles
+  deleteArticles: async (request: DeleteArticlesRequest): Promise<DeleteArticlesResponse> => {
+    const response = await apiClient.post('/admin/delete-articles', request)
+    return response.data
   }
 }
 

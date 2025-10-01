@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IngestionPanel } from '@/components/admin/IngestionPanel'
+import { DeleteArticlesPanel } from '@/components/admin/DeleteArticlesPanel'
 import { Database, Settings, BarChart3, Plus, Trash2, ExternalLink } from 'lucide-react'
 import { useRSSFeeds, useAddRSSFeed, useDeleteRSSFeed } from '@/hooks/useArticlesQuery'
 
@@ -55,6 +56,9 @@ export function Admin() {
         <div className="lg:col-span-2 space-y-8">
           {/* Article Ingestion */}
           <IngestionPanel />
+
+          {/* Database Cleanup */}
+          <DeleteArticlesPanel />
 
           {/* Future: System Stats */}
           <div className="card p-6">

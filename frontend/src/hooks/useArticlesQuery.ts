@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { articleApi } from '@/services/api'
-import type { Article, ArticleListResponse, ArticleSummary, RSSFeed, RSSFeedCreate } from '@/types/article'
+import type { Article, ArticleListResponse, ArticleSummary, RSSFeed, RSSFeedCreate, DeleteArticlesRequest } from '@/types/article'
 
 // Query keys for React Query
 export const articleKeys = {
@@ -222,6 +222,49 @@ export function useDeleteRSSFeed() {
     onSuccess: () => {
       // Invalidate RSS feeds list to refetch
       queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
+    },
+  })
+}
+
+/**
+ * Hook for getting all article sources
+ */
+export function useAllSources() {
+  return useQuery({
+    queryKey: ['article-sources'],
+    queryFn: () => articleApi.getAllSources(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+
+/**
+ * Hook for getting article count preview before deletion
+ */
+export function useArticleCountPreview(params: {
+  before_date?: string
+  sources?: string
+}) {
+  return useQuery({
+    queryKey: ['article-count-preview', params],
+    queryFn: () => articleApi.getArticleCountPreview(params),
+    enabled: !!(params.before_date || params.sources),
+    staleTime: 0, // Always fetch fresh data
+  })
+}
+
+/**
+ * Hook for deleting articles
+ */
+export function useDeleteArticles() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request: DeleteArticlesRequest) => articleApi.deleteArticles(request),
+    onSuccess: () => {
+      // Invalidate all article-related queries
+      queryClient.invalidateQueries({ queryKey: articleKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: articleKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: ['article-sources'] })
     },
   })
 }
