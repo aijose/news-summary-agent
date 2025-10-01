@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowTopRightOnSquareIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { ArrowTopRightOnSquareIcon, ClockIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { useCreateSummary } from '@/hooks/useArticlesQuery'
 import type { Article } from '@/types/article'
 
 interface ArticleCardProps {
@@ -10,6 +12,8 @@ interface ArticleCardProps {
 
 export function ArticleCard({ article, showSummary = false, compact = false }: ArticleCardProps) {
   const navigate = useNavigate()
+  const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
+  const { mutate: createSummary, isPending: isGenerating } = useCreateSummary()
 
   const handleCardClick = () => {
     navigate(`/article/${article.id}`)
@@ -37,9 +41,26 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
     return readingTime
   }
 
+  const handleSummarize = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click navigation
+    createSummary(
+      { articleId: article.id, summaryType: 'comprehensive' },
+      {
+        onSuccess: (data) => {
+          setGeneratedSummary(data.summary_text)
+        }
+      }
+    )
+  }
+
   const cardClasses = compact
     ? "card p-4 hover:shadow-md transition-shadow cursor-pointer"
     : "card p-6 hover:shadow-lg transition-shadow"
+
+  // Determine which summary to display
+  const displaySummary = generatedSummary || article.metadata?.ai_summary
+  // Show summary if: user just generated one OR showSummary prop is true and summary exists
+  const shouldShowSummary = generatedSummary ? true : (showSummary && displaySummary)
 
   return (
     <article className={cardClasses} onClick={handleCardClick}>
@@ -86,10 +107,44 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
         </div>
       )}
 
-      {showSummary && article.metadata?.ai_summary && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-          <div className="text-sm font-medium text-blue-800 mb-1">AI Summary</div>
-          <div className="text-sm text-blue-700">{article.metadata.ai_summary}</div>
+      {/* Summarize Button */}
+      {!compact && !displaySummary && (
+        <div className="mb-4">
+          <button
+            onClick={handleSummarize}
+            disabled={isGenerating}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <SparklesIcon className="h-4 w-4" />
+            {isGenerating ? 'Generating...' : 'Summarize'}
+          </button>
+        </div>
+      )}
+
+      {/* Display Summary */}
+      {shouldShowSummary && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+          <div className="text-sm font-medium text-blue-800 mb-2">
+            AI Summary {generatedSummary && <span className="text-xs text-blue-600">(Just generated)</span>}
+          </div>
+          <div className="text-sm text-blue-900 prose prose-sm max-w-none">
+            {displaySummary.split('\n').map((line, index) => {
+              // Bold headers (lines starting with **)
+              if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                const text = line.trim().slice(2, -2)
+                return <div key={index} className="font-semibold text-blue-900 mt-3 mb-1">{text}</div>
+              }
+              // Bullet points
+              if (line.trim().startsWith('•')) {
+                return <div key={index} className="ml-4 mb-1">{line.trim()}</div>
+              }
+              // Regular paragraphs
+              if (line.trim()) {
+                return <div key={index} className="mb-2">{line.trim()}</div>
+              }
+              return null
+            })}
+          </div>
         </div>
       )}
 

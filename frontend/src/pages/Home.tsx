@@ -117,7 +117,7 @@ export function Home() {
             error={errorMessage}
             title=""
             showLoadMore={false}
-            compact={true}
+            compact={false}
           />
 
           {articles.length > 0 && (

@@ -54,10 +54,10 @@ class NewsAnalysisAgent:
                 return
 
             self.llm = ChatAnthropic(
-                model="claude-3-sonnet-20240229",
+                model="claude-3-5-sonnet-20241022",  # Latest Claude 3.5 Sonnet
                 anthropic_api_key=settings.ANTHROPIC_API_KEY,
                 temperature=0.1,
-                max_tokens=4000
+                max_tokens=8000  # Increased for better summaries
             )
             logger.info("Claude LLM initialized successfully")
 
@@ -102,13 +102,20 @@ class NewsAnalysisAgent:
             Title: {article_title}
             Content: {article_content}
 
-            Create a {summary_type} summary that includes:
-            1. Main points and key information
-            2. Important context and background
-            3. Significance and implications
-            4. Any notable quotes or data points
+            Create a {summary_type} summary using this EXACT format:
 
-            Keep the summary clear, objective, and informative.
+            **Main Points:**
+            • [Key point 1]
+            • [Key point 2]
+            • [Key point 3]
+
+            **Context:**
+            [2-3 sentences providing important background information]
+
+            **Significance:**
+            [2-3 sentences explaining why this matters and its implications]
+
+            Keep the summary clear, objective, and informative. Use bullet points for readability.
 
             Summary:
             """
