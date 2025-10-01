@@ -173,17 +173,42 @@
 
 ---
 
-## Future Decisions to Track
+## 2025-09-30: Phase 3 Feature Descoping
 
-### Pending Decisions
-- **Authentication Strategy**: JWT, OAuth, or session-based
-- **Deployment Platform**: AWS, GCP, or self-hosted
-- **Monitoring Solution**: Custom dashboards vs. third-party services
-- **Testing Strategy**: Unit, integration, and E2E testing approaches
+**Decision**: Remove Phase 3 advanced features (timelines, impact analysis, credibility scoring, alerts)
+**Context**: Project scope assessment after completing Phase 2 core functionality
+**Rationale**:
+- Core features (search, summarization, multi-perspective analysis) provide sufficient value
+- Advanced features add complexity without proportional benefit for personal use case
+- Focus resources on production readiness, testing, and deployment instead
+- Simpler scope enables faster iteration and maintenance
+
+**Features Removed**:
+- Timeline creation and event tracking
+- Impact analysis engine
+- Source credibility scoring system
+- Proactive alert system
+
+**New Focus Areas**:
+- Performance optimization and bundle size reduction
+- Comprehensive testing coverage
+- Production deployment and CI/CD pipeline
+- Enhanced documentation and user guides
+
+**Status**: ✅ Implemented
+
+---
+
+## Future Considerations
+
+### Potential Enhancements (If Needed)
+- Browser extension for quick news lookup
+- Mobile-responsive improvements
+- Export functionality (PDF, markdown)
+- Saved searches and article collections
 
 ### Decision Criteria for Future Choices
 1. **Simplicity**: Favor simple solutions for personal project scope
 2. **Cost Effectiveness**: Minimize ongoing operational costs
-3. **Development Speed**: Optimize for rapid iteration and feedback
-4. **Scalability**: Don't over-engineer but keep options open
-5. **Maintainability**: Choose technologies with good documentation and community support
+3. **Value-to-Effort Ratio**: High impact features with low implementation cost
+4. **Maintainability**: Choose technologies with good documentation and community support

@@ -56,61 +56,66 @@ Comprehensive project documentation is available in the `docs/` folder:
 - **Development Guide**: Setup instructions and contribution guidelines
 - **RAG Implementation**: Detailed explanation of RAG patterns and workflows
 
-## Development Phases
+## Development Status
 
-### Phase 1: MVP (Weeks 1-2)
-- Basic article ingestion pipeline
-- Semantic search functionality
-- Simple summarization agent
-- CLI interface for testing
+### ✅ Phase 1: MVP - COMPLETED
+- Article ingestion pipeline from 10+ RSS feeds
+- Semantic search with vector similarity
+- AI-powered article summarization
+- ChromaDB integration with 300+ articles
 
-### Phase 2: Core Agent (Weeks 3-4)
-- Multi-perspective analysis
-- Personalized briefings
-- Context and background information
+### ✅ Phase 2: Core Agent - COMPLETED
+- Multi-perspective analysis across sources
 - React web interface with responsive design
+- TanStack Query for efficient data management
+- Real-time article ingestion and search
 
-### Phase 3: Advanced Features (Weeks 5-8)
-- Timeline creation
-- Impact analysis
-- Source credibility scoring
-- Alert system
-
-### Phase 4: Polish & Scale (Weeks 9-12)
-- Frontend performance optimization
-- Enhanced UI/UX with accessibility compliance
-- Production deployment with CI/CD pipeline
-- Comprehensive testing
+### 🎯 Current Focus: Refinement & Production
+- Performance optimization and monitoring
+- Enhanced UI/UX improvements
+- Production deployment preparation
+- Comprehensive testing and documentation
 
 ## Getting Started
-
-> **Note**: This project is currently in the planning phase. Implementation will begin with Phase 1 MVP development.
 
 ### Prerequisites
 - Python 3.9+
 - Node.js 18+
-- Docker & Docker Compose
 - uv (Python package management)
+- Anthropic API key for Claude
 
-### Quick Start (Planned)
+### Quick Start
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd news-summary-agent
 
-# Start development environment
-docker-compose up -d
-
 # Install backend dependencies
-cd backend && uv venv && uv pip install -r requirements.txt
+cd backend
+uv sync
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
 
 # Install frontend dependencies
-cd frontend && npm install
+cd ../frontend
+npm install
 
-# Start development servers
-# Backend: uv run uvicorn main:app --reload
-# Frontend: npm run dev
+# Start development servers (in separate terminals)
+# Terminal 1 - Backend:
+cd backend
+uv run uvicorn src.main:app --reload --port 8000
+
+# Terminal 2 - Frontend:
+cd frontend
+npm run dev
 ```
+
+The application will be available at:
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
 
 ## Contributing
 
