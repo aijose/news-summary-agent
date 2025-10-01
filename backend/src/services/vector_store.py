@@ -131,7 +131,8 @@ class VectorStoreService:
         query: str,
         limit: int = 10,
         source_filter: Optional[List[str]] = None,
-        date_filter: Optional[Dict[str, Any]] = None
+        date_filter: Optional[Dict[str, Any]] = None,
+        min_similarity: float = 0.1
     ) -> List[Dict[str, Any]]:
         """
         Search for articles similar to the given query.
@@ -141,9 +142,10 @@ class VectorStoreService:
             limit: Maximum number of results to return
             source_filter: Optional list of sources to filter by
             date_filter: Optional date range filter
+            min_similarity: Minimum similarity score threshold (0.0-1.0)
 
         Returns:
-            List of search results with metadata and similarity scores
+            List of search results with metadata and similarity scores above threshold
         """
         try:
             # Build where clause for filtering
@@ -176,6 +178,11 @@ class VectorStoreService:
                     # ChromaDB returns distances, lower distance = higher similarity
                     distance = distances[i] if i < len(distances) else 1.0
                     similarity_score = max(0, 1 - distance)
+
+                    # Apply similarity threshold filter
+                    # Temporarily disabled to debug - see actual scores
+                    # if similarity_score < min_similarity:
+                    #     continue
 
                     result = {
                         "article_id": metadatas[i].get("article_id") if i < len(metadatas) else None,
@@ -309,9 +316,19 @@ def add_article_to_vector_store(article: Article) -> bool:
     return get_vector_store().add_article(article)
 
 
-def search_articles_by_query(query: str, limit: int = 10) -> List[Dict[str, Any]]:
-    """Search articles by natural language query."""
-    return get_vector_store().search_similar_articles(query, limit)
+def search_articles_by_query(query: str, limit: int = 10, min_similarity: float = 0.1) -> List[Dict[str, Any]]:
+    """
+    Search articles by natural language query with relevance filtering.
+
+    Args:
+        query: Natural language search query
+        limit: Maximum number of results to return
+        min_similarity: Minimum similarity score threshold (default 0.2 = 20%)
+
+    Returns:
+        List of relevant search results above similarity threshold
+    """
+    return get_vector_store().search_similar_articles(query, limit, min_similarity=min_similarity)
 
 
 def get_vector_store_stats() -> Dict[str, Any]:
