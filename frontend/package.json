@@ -11,7 +11,10 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "clean": "rm -rf node_modules package-lock.json dist",
+    "fresh-install": "npm run clean && npm install",
+    "setup": "npm run fresh-install && npm run type-check"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
