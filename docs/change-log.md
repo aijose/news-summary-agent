@@ -114,3 +114,55 @@
 - ✅ **Tech Stack Decided**: Modern, scalable architecture selected
 - ✅ **Documentation Framework**: Comprehensive docs structure established
 - ⏳ **Ready for Implementation**: Phase 1 MVP development can begin
+
+---
+
+## 2025-10-02: Article Ingestion Issues Fixed (Ubuntu)
+
+### Fixed
+- **Database Setup**: Missing database tables causing SQL errors
+- **RSS Feed URLs**: Broken Hacker News feed URL and 403 errors from MIT feed
+- **Error Logging**: Empty exception messages in logs not showing actual errors
+- **Configuration Reloading**: Settings changes requiring server restart
+
+### Issues Resolved
+1. **Missing Database Tables**
+   - **Problem**: `no such table: articles` error during ingestion
+   - **Cause**: Alembic migrations never run, missing versions directory
+   - **Solution**: Created `alembic/versions/`, generated and applied initial migration
+   - **Commands**: `uv run alembic revision --autogenerate` → `uv run alembic upgrade head`
+
+2. **Broken RSS Feed URL**
+   - **Problem**: `https://storage.googleapis.com/hnrss/newest.xml` returning HTTP 404
+   - **Solution**: Updated to working URL `https://hnrss.org/newest`
+   - **Files**: Fixed in both `.env.example` and `.env`
+
+3. **MIT Feed 403 Forbidden**
+   - **Problem**: `https://news.mit.edu/rss/feed` blocking requests
+   - **Solution**: Removed from default feed list to prevent constant errors
+
+4. **Poor Error Logging**
+   - **Problem**: Exception logs showing empty strings
+   - **Solution**: Enhanced logging: `{type(e).__name__}: {str(e) or 'No error message'}`
+
+### Files Added
+- `backend/TROUBLESHOOTING.md`: Comprehensive troubleshooting guide for future issues
+- Database tables: `articles`, `user_preferences`, `summaries` created successfully
+
+### Platform Verification
+- ✅ **Ubuntu Compatibility**: All issues resolved, article ingestion working
+- ✅ **Cross-Platform Setup**: Frontend npm issues from previous session also resolved
+- ✅ **Database**: 186 articles successfully ingested and verified
+- ✅ **RSS Feeds**: All remaining feeds working correctly
+
+### Prevention Added
+- Troubleshooting documentation with command examples
+- RSS feed health testing scripts
+- Database setup verification procedures
+- Environment variable validation checklist
+
+### Impact
+- **Article Ingestion**: Now fully functional on Ubuntu/Linux platforms
+- **Developer Experience**: Comprehensive troubleshooting guide prevents repeat issues
+- **System Reliability**: Better error logging helps identify problems faster
+- **Cross-Platform**: Both Mac and Linux development environments working

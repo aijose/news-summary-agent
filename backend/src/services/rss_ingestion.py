@@ -75,7 +75,7 @@ class RSSIngestionService:
                     return None
 
         except Exception as e:
-            logger.error(f"Error fetching RSS feed {feed_url}: {e}")
+            logger.error(f"Error fetching RSS feed {feed_url}: {type(e).__name__}: {str(e) or 'No error message'}")
             return None
 
     def extract_article_data(self, entry: Any, feed_info: Dict[str, Any]) -> Optional[Dict[str, Any]]:
