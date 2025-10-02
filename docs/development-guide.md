@@ -127,20 +127,44 @@ volumes:
 ```bash
 cd backend
 
-# Create virtual environment
-uv venv
+# Using uv (Recommended - Fast and Modern)
+# uv will automatically create venv and install from pyproject.toml
+uv sync
 
-# Install dependencies
-uv pip install -r requirements.txt
+# Install with development dependencies
+uv sync --all-extras
 
 # Run database migrations (after implementing Alembic)
 uv run alembic upgrade head
 
 # Start development server
+uv run python -m src.main
+# Or with uvicorn directly:
 uv run uvicorn src.main:app --reload
 
 # API will be available at http://localhost:8000
 # Interactive docs at http://localhost:8000/docs
+```
+
+**Alternative: Traditional pip workflow**
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies from pyproject.toml
+pip install -e .
+# Or with development dependencies:
+pip install -e ".[dev]"
+
+# Run migrations
+alembic upgrade head
+
+# Start development server
+python -m src.main
 ```
 
 ### Backend Project Structure
