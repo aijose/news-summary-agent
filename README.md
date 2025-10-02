@@ -79,10 +79,11 @@ Comprehensive project documentation is available in the `docs/` folder:
 ## Getting Started
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.11+
 - Node.js 18+
 - uv (Python package management)
-- Anthropic API key for Claude
+- **Database**: SQLite (default, no setup required) OR PostgreSQL (optional, via Docker)
+- Anthropic API key for Claude (optional, only needed for AI features)
 
 ### Quick Start
 ```bash
@@ -96,26 +97,39 @@ uv sync
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Edit .env and add your ANTHROPIC_API_KEY (optional for basic functionality)
 
 # Install frontend dependencies
 cd ../frontend
 npm install
 
 # Start development servers (in separate terminals)
-# Terminal 1 - Backend:
+# Terminal 1 - Backend (run in background):
 cd backend
-uv run uvicorn src.main:app --reload --port 8000
+nohup uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > server.log 2>&1 &
 
 # Terminal 2 - Frontend:
 cd frontend
 npm run dev
+
+# To stop the backend server later:
+pkill -f uvicorn
 ```
 
 The application will be available at:
 - Frontend: http://localhost:3001
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs
+
+## Troubleshooting
+
+### Quick Fixes for Common Issues
+
+1. **"Connection refused" when accessing API**: Use the background server command above
+2. **PostgreSQL connection errors**: The default SQLite configuration (in `.env.example`) works without any database setup
+3. **Server starts but can't access**: Make sure you're using the `nohup` command to run the server in background
+
+For detailed troubleshooting, see [backend/README.md](./backend/README.md#troubleshooting).
 
 ## Contributing
 

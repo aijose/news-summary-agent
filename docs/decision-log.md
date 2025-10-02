@@ -199,6 +199,64 @@
 
 ---
 
+## 2025-10-02: Database Setup Strategy Revision
+
+**Decision**: Use SQLite as default for development, PostgreSQL as optional for production
+**Context**: Fresh repository setup revealed unnecessary complexity with PostgreSQL requirement
+**Rationale**:
+- SQLite provides zero-setup experience for developers on new machines
+- No dependency on Docker/containers for basic development
+- Reduces onboarding friction and setup documentation complexity  
+- PostgreSQL can be optionally enabled via Docker Compose when needed
+- Most development work doesn't require PostgreSQL-specific features
+
+**Key Findings**:
+- The `.env.example` already included working SQLite configuration
+- Server starts immediately with SQLite, no external dependencies
+- PostgreSQL connection errors were the primary setup roadblock
+- Development database needs are fully met by SQLite
+
+**Implementation Changes**:
+- Updated documentation to recommend SQLite first
+- PostgreSQL positioned as optional production enhancement
+- Setup instructions prioritize working configuration over "ideal" configuration
+
+**Alternatives Considered**:
+- Keep PostgreSQL as requirement (creates unnecessary setup complexity)
+- Use in-memory database (loses data between restarts)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-10-02: Server Process Management Fix
+
+**Decision**: Use background processes (nohup) for uvicorn development server
+**Context**: Server startup appeared successful but API was inaccessible during testing
+**Rationale**:
+- Interactive terminal commands with timeouts terminate the server process
+- Background processes remain accessible for API testing and development
+- Prevents confusion between "server started" logs and actual accessibility
+- Provides consistent development experience across different terminal environments
+
+**Root Cause Discovery**:
+- `uv run uvicorn` started successfully but was killed on command timeout
+- Server logs showed successful startup in both cases
+- Only background mode (`nohup ... &`) remained accessible for API calls
+
+**Implementation Fix**:
+```bash
+# OLD (problematic)
+uv run uvicorn src.main:app --reload --port 8000
+
+# NEW (reliable)  
+nohup uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > server.log 2>&1 &
+```
+
+**Status**: ✅ Implemented
+
+---
+
 ## Future Considerations
 
 ### Potential Enhancements (If Needed)
