@@ -165,12 +165,14 @@ def sample_article(db_session: Session) -> Article:
     """
     Create a sample article for testing.
     """
+    from datetime import datetime
+
     article = Article(
         title="Sample Tech Article",
         content="This is a sample article about technology.",
         source="TechCrunch",
         url="https://techcrunch.com/sample-article",
-        published_date="2025-10-03T10:00:00"
+        published_date=datetime(2025, 10, 3, 10, 0, 0)
     )
     db_session.add(article)
     db_session.commit()
@@ -183,27 +185,29 @@ def sample_articles(db_session: Session) -> list[Article]:
     """
     Create multiple sample articles for testing.
     """
+    from datetime import datetime
+
     articles = [
         Article(
             title="AI Breakthrough in 2025",
             content="Scientists announce major AI breakthrough...",
             source="TechCrunch",
             url="https://techcrunch.com/ai-breakthrough",
-            published_date="2025-10-03T10:00:00"
+            published_date=datetime(2025, 10, 3, 10, 0, 0)
         ),
         Article(
             title="Quantum Computing Advances",
             content="New quantum computing research shows promise...",
             source="Science Daily",
             url="https://sciencedaily.com/quantum-computing",
-            published_date="2025-10-03T09:00:00"
+            published_date=datetime(2025, 10, 3, 9, 0, 0)
         ),
         Article(
             title="Market Analysis October 2025",
             content="Stock markets show interesting trends...",
             source="Financial Times",
             url="https://ft.com/market-analysis",
-            published_date="2025-10-03T08:00:00"
+            published_date=datetime(2025, 10, 3, 8, 0, 0)
         ),
     ]
     db_session.add_all(articles)
