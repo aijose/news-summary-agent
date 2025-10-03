@@ -2,15 +2,18 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw } from 'lucide-react'
 import { ArticleList } from '@/components/articles/ArticleList'
+import { TagFilter } from '@/components/TagFilter'
 import { useArticles } from '@/hooks/useArticlesQuery'
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const navigate = useNavigate()
 
   const { data, isLoading, error, refetch } = useArticles({
     limit: 6,
-    hours_back: 24
+    hours_back: 24,
+    tags: selectedTagIds.length > 0 ? selectedTagIds.join(',') : undefined
   })
 
   const articles = data?.articles || []
@@ -26,6 +29,18 @@ export function Home() {
 
   const handleRefresh = () => {
     refetch()
+  }
+
+  const handleTagToggle = (tagId: number) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    )
+  }
+
+  const handleClearAllTags = () => {
+    setSelectedTagIds([])
   }
 
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null
@@ -109,6 +124,15 @@ export function Home() {
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
+          </div>
+
+          {/* Tag Filter */}
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <TagFilter
+              selectedTagIds={selectedTagIds}
+              onTagToggle={handleTagToggle}
+              onClearAll={handleClearAllTags}
+            />
           </div>
 
           <ArticleList

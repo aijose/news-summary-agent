@@ -65,14 +65,55 @@ export interface ArticleStats {
   }
 }
 
+export interface Tag {
+  id: number
+  name: string
+  description: string | null
+  color: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TagCreate {
+  name: string
+  description?: string
+  color?: string
+}
+
+export interface TagUpdate {
+  name?: string
+  description?: string
+  color?: string
+}
+
 export interface RSSFeed {
+  id: number
   name: string
   url: string
+  description: string | null
+  is_active: boolean
+  tags: Array<{
+    id: number
+    name: string
+    color: string | null
+  }>
+  created_at: string
+  updated_at: string
+  last_fetched_at: string | null
 }
 
 export interface RSSFeedCreate {
   name: string
   url: string
+  description?: string
+  tag_ids?: number[]
+}
+
+export interface RSSFeedUpdate {
+  name?: string
+  description?: string
+  is_active?: boolean
+  tag_ids?: number[]
 }
 
 export interface DeleteArticlesRequest {

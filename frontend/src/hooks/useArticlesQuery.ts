@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { articleApi } from '@/services/api'
-import type { Article, ArticleListResponse, ArticleSummary, RSSFeed, RSSFeedCreate, DeleteArticlesRequest } from '@/types/article'
+import type { Article, ArticleListResponse, ArticleSummary, RSSFeed, RSSFeedCreate, RSSFeedUpdate, Tag, TagCreate, TagUpdate, DeleteArticlesRequest } from '@/types/article'
 
 // Query keys for React Query
 export const articleKeys = {
@@ -14,6 +14,7 @@ export const articleKeys = {
   stats: () => [...articleKeys.all, 'stats'] as const,
   trending: (hoursBack: number) => [...articleKeys.all, 'trending', hoursBack] as const,
   rssFeeds: () => ['rss-feeds'] as const,
+  tags: () => ['tags'] as const,
 }
 
 export interface ArticleFilters {
@@ -21,6 +22,7 @@ export interface ArticleFilters {
   limit?: number
   source?: string
   hours_back?: number
+  tags?: string
 }
 
 /**
@@ -212,13 +214,29 @@ export function useAddRSSFeed() {
 }
 
 /**
+ * Hook for updating an RSS feed
+ */
+export function useUpdateRSSFeed() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ feedId, feed }: { feedId: number; feed: RSSFeedUpdate }) =>
+      articleApi.updateRSSFeed(feedId, feed),
+    onSuccess: () => {
+      // Invalidate RSS feeds list to refetch
+      queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
+    },
+  })
+}
+
+/**
  * Hook for deleting an RSS feed
  */
 export function useDeleteRSSFeed() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (feedUrl: string) => articleApi.deleteRSSFeed(feedUrl),
+    mutationFn: (feedId: number) => articleApi.deleteRSSFeed(feedId),
     onSuccess: () => {
       // Invalidate RSS feeds list to refetch
       queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
@@ -265,6 +283,65 @@ export function useDeleteArticles() {
       queryClient.invalidateQueries({ queryKey: articleKeys.lists() })
       queryClient.invalidateQueries({ queryKey: articleKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['article-sources'] })
+    },
+  })
+}
+
+/**
+ * Hook for fetching all tags
+ */
+export function useTags() {
+  return useQuery({
+    queryKey: articleKeys.tags(),
+    queryFn: () => articleApi.getAllTags(),
+    staleTime: 5 * 60 * 1000, // 5 minutes - tags don't change often
+  })
+}
+
+/**
+ * Hook for creating a tag
+ */
+export function useCreateTag() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (tag: TagCreate) => articleApi.createTag(tag),
+    onSuccess: () => {
+      // Invalidate tags list to refetch
+      queryClient.invalidateQueries({ queryKey: articleKeys.tags() })
+    },
+  })
+}
+
+/**
+ * Hook for updating a tag
+ */
+export function useUpdateTag() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ tagId, tag }: { tagId: number; tag: TagUpdate }) =>
+      articleApi.updateTag(tagId, tag),
+    onSuccess: () => {
+      // Invalidate tags list and RSS feeds (which include tags)
+      queryClient.invalidateQueries({ queryKey: articleKeys.tags() })
+      queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
+    },
+  })
+}
+
+/**
+ * Hook for deleting a tag
+ */
+export function useDeleteTag() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (tagId: number) => articleApi.deleteTag(tagId),
+    onSuccess: () => {
+      // Invalidate tags list and RSS feeds (which include tags)
+      queryClient.invalidateQueries({ queryKey: articleKeys.tags() })
+      queryClient.invalidateQueries({ queryKey: articleKeys.rssFeeds() })
     },
   })
 }

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Article, SearchResponse, RSSFeed, RSSFeedCreate, DeleteArticlesRequest, DeleteArticlesResponse, ArticleCountResponse } from '@/types/article'
+import type { Article, SearchResponse, RSSFeed, RSSFeedCreate, RSSFeedUpdate, Tag, TagCreate, TagUpdate, DeleteArticlesRequest, DeleteArticlesResponse, ArticleCountResponse } from '@/types/article'
 
 // API client configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
@@ -144,8 +144,38 @@ export const articleApi = {
   },
 
   // Delete RSS feed
-  deleteRSSFeed: async (feedUrl: string): Promise<void> => {
-    await apiClient.delete(`/rss-feeds/${encodeURIComponent(feedUrl)}`)
+  deleteRSSFeed: async (feedId: number): Promise<void> => {
+    await apiClient.delete(`/rss-feeds/${feedId}`)
+  },
+
+  // Update RSS feed
+  updateRSSFeed: async (feedId: number, feed: RSSFeedUpdate): Promise<RSSFeed> => {
+    const response = await apiClient.put(`/rss-feeds/${feedId}`, feed)
+    return response.data
+  },
+
+  // Tags API
+  // Get all tags
+  getAllTags: async (): Promise<Tag[]> => {
+    const response = await apiClient.get('/tags')
+    return response.data
+  },
+
+  // Create tag
+  createTag: async (tag: TagCreate): Promise<Tag> => {
+    const response = await apiClient.post('/tags', tag)
+    return response.data
+  },
+
+  // Update tag
+  updateTag: async (tagId: number, tag: TagUpdate): Promise<Tag> => {
+    const response = await apiClient.put(`/tags/${tagId}`, tag)
+    return response.data
+  },
+
+  // Delete tag
+  deleteTag: async (tagId: number): Promise<void> => {
+    await apiClient.delete(`/tags/${tagId}`)
   },
 
   // Get all sources
