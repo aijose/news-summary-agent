@@ -1,16 +1,16 @@
 """
 RSS Feed Management API
 
-Endpoints for managing RSS feed sources dynamically.
+Endpoints for managing RSS feed sources dynamically with database storage and tag support.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, HttpUrl, validator
-from typing import List, Dict, Any
-import os
-from pathlib import Path
+from typing import List, Dict, Any, Optional
+from sqlalchemy.orm import Session
 import logging
 
+from ..database import get_db, RSSFeed, Tag, rss_feed_tags
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,8 @@ class RSSFeedCreate(BaseModel):
     """Model for creating a new RSS feed."""
     url: HttpUrl
     name: str
+    description: Optional[str] = None
+    tag_ids: Optional[List[int]] = []
 
     @validator('name')
     def name_not_empty(cls, v):
@@ -30,126 +32,73 @@ class RSSFeedCreate(BaseModel):
         return v.strip()
 
 
-class RSSFeed(BaseModel):
+class RSSFeedUpdate(BaseModel):
+    """Model for updating an RSS feed."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_active: Optional[bool] = None
+    tag_ids: Optional[List[int]] = None
+
+    @validator('name')
+    def name_not_empty(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError('Feed name cannot be empty')
+        return v.strip() if v else None
+
+
+class TagInfo(BaseModel):
+    """Model for tag information in feed response."""
+    id: int
+    name: str
+    color: Optional[str]
+
+
+class RSSFeedResponse(BaseModel):
     """Model for RSS feed response."""
+    id: int
     url: str
     name: str
+    description: Optional[str]
+    is_active: bool
+    tags: List[TagInfo]
+    created_at: str
+    updated_at: str
+    last_fetched_at: Optional[str]
 
 
-def get_env_file_path() -> Path:
-    """Get the path to the .env file."""
-    return Path(__file__).parent.parent.parent / ".env"
-
-
-def read_rss_feeds_from_env() -> List[Dict[str, str]]:
-    """Read RSS feeds from .env file and return as list of dicts with name and url."""
-    env_path = get_env_file_path()
-
-    if not env_path.exists():
-        logger.warning(f".env file not found at {env_path}")
-        return []
-
-    # Read current .env file
-    with open(env_path, 'r') as f:
-        lines = f.readlines()
-
-    # Find RSS_FEEDS line
-    for line in lines:
-        if line.strip().startswith('RSS_FEEDS='):
-            feeds_str = line.split('=', 1)[1].strip()
-            if not feeds_str:
-                return []
-
-            # Parse comma-separated URLs
-            urls = [url.strip() for url in feeds_str.split(',') if url.strip()]
-
-            # Extract feed names from URLs
-            feeds = []
-            for url in urls:
-                name = extract_feed_name(url)
-                feeds.append({"name": name, "url": url})
-
-            return feeds
-
-    return []
-
-
-def extract_feed_name(url: str) -> str:
-    """Extract a human-readable name from RSS feed URL."""
-    url_lower = url.lower()
-
-    # Map of common RSS feeds to their names
-    name_mappings = {
-        'bbc': 'BBC News',
-        'reuters': 'Reuters',
-        'guardian': 'The Guardian',
-        'techcrunch': 'TechCrunch',
-        'arstechnica': 'Ars Technica',
-        'sciencedaily': 'Science Daily',
-        'mit.edu': 'MIT News',
-        'hnrss': 'Hacker News',
-        'npr.org': 'NPR',
-        'ap.org': 'Associated Press',
-    }
-
-    for key, name in name_mappings.items():
-        if key in url_lower:
-            return name
-
-    # Extract domain name as fallback
-    try:
-        from urllib.parse import urlparse
-        domain = urlparse(url).netloc
-        # Remove www. prefix and common TLDs
-        domain = domain.replace('www.', '').split('.')[0]
-        return domain.title()
-    except:
-        return url
-
-
-def write_rss_feeds_to_env(feeds: List[Dict[str, str]]) -> None:
-    """Write RSS feeds list back to .env file."""
-    env_path = get_env_file_path()
-
-    if not env_path.exists():
-        raise FileNotFoundError(f".env file not found at {env_path}")
-
-    # Read current .env file
-    with open(env_path, 'r') as f:
-        lines = f.readlines()
-
-    # Update RSS_FEEDS line
-    feeds_str = ','.join([feed['url'] for feed in feeds])
-    updated = False
-
-    for i, line in enumerate(lines):
-        if line.strip().startswith('RSS_FEEDS='):
-            lines[i] = f'RSS_FEEDS={feeds_str}\n'
-            updated = True
-            break
-
-    # If RSS_FEEDS line doesn't exist, add it
-    if not updated:
-        lines.append(f'RSS_FEEDS={feeds_str}\n')
-
-    # Write back to file
-    with open(env_path, 'w') as f:
-        f.writelines(lines)
-
-    logger.info(f"Updated RSS feeds in .env file: {len(feeds)} feeds")
-
-
-@router.get("", response_model=List[RSSFeed])
-async def get_rss_feeds():
+@router.get("", response_model=List[RSSFeedResponse])
+async def get_rss_feeds(db: Session = Depends(get_db)):
     """
-    Get all configured RSS feed sources.
+    Get all configured RSS feed sources with their tags.
 
     Returns:
-        List of RSS feeds with their names and URLs
+        List of RSS feeds with their names, URLs, and tags
     """
     try:
-        feeds = read_rss_feeds_from_env()
-        return [RSSFeed(name=feed['name'], url=feed['url']) for feed in feeds]
+        feeds = db.query(RSSFeed).order_by(RSSFeed.name).all()
+
+        result = []
+        for feed in feeds:
+            # Get tags for this feed
+            tags = db.query(Tag).join(
+                rss_feed_tags, Tag.id == rss_feed_tags.c.tag_id
+            ).filter(
+                rss_feed_tags.c.feed_id == feed.id
+            ).all()
+
+            result.append(RSSFeedResponse(
+                id=feed.id,
+                name=feed.name,
+                url=feed.url,
+                description=feed.description,
+                is_active=bool(feed.is_active),
+                tags=[TagInfo(id=tag.id, name=tag.name, color=tag.color) for tag in tags],
+                created_at=feed.created_at.isoformat(),
+                updated_at=feed.updated_at.isoformat(),
+                last_fetched_at=feed.last_fetched_at.isoformat() if feed.last_fetched_at else None
+            ))
+
+        return result
     except Exception as e:
         logger.error(f"Error reading RSS feeds: {e}")
         raise HTTPException(
@@ -158,80 +107,194 @@ async def get_rss_feeds():
         )
 
 
-@router.post("", response_model=RSSFeed, status_code=status.HTTP_201_CREATED)
-async def add_rss_feed(feed: RSSFeedCreate):
+@router.post("", response_model=RSSFeedResponse, status_code=status.HTTP_201_CREATED)
+async def add_rss_feed(feed: RSSFeedCreate, db: Session = Depends(get_db)):
     """
-    Add a new RSS feed source.
+    Add a new RSS feed source with optional tags.
 
     Args:
-        feed: RSS feed to add with name and URL
+        feed: RSS feed to add with name, URL, description, and tag IDs
 
     Returns:
-        The created RSS feed
+        The created RSS feed with tags
     """
     try:
-        # Read current feeds
-        feeds = read_rss_feeds_from_env()
+        feed_url = str(feed.url)
 
         # Check if URL already exists
-        feed_url = str(feed.url)
-        if any(f['url'] == feed_url for f in feeds):
+        existing_feed = db.query(RSSFeed).filter(RSSFeed.url == feed_url).first()
+        if existing_feed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="RSS feed URL already exists"
             )
 
-        # Add new feed
-        feeds.append({"name": feed.name, "url": feed_url})
+        # Verify all tags exist if provided
+        tags = []
+        if feed.tag_ids:
+            tags = db.query(Tag).filter(Tag.id.in_(feed.tag_ids)).all()
+            if len(tags) != len(feed.tag_ids):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="One or more tag IDs not found"
+                )
 
-        # Write back to .env
-        write_rss_feeds_to_env(feeds)
+        # Create new feed
+        db_feed = RSSFeed(
+            name=feed.name,
+            url=feed_url,
+            description=feed.description,
+            is_active=1
+        )
+        db.add(db_feed)
+        db.flush()  # Get the feed ID
 
-        logger.info(f"Added RSS feed: {feed.name} ({feed_url})")
+        # Add tag associations
+        for tag_id in feed.tag_ids or []:
+            db.execute(
+                rss_feed_tags.insert().values(feed_id=db_feed.id, tag_id=tag_id)
+            )
 
-        return RSSFeed(name=feed.name, url=feed_url)
+        db.commit()
+        db.refresh(db_feed)
+
+        logger.info(f"Added RSS feed: {feed.name} ({feed_url}) with {len(tags)} tags")
+
+        return RSSFeedResponse(
+            id=db_feed.id,
+            name=db_feed.name,
+            url=db_feed.url,
+            description=db_feed.description,
+            is_active=bool(db_feed.is_active),
+            tags=[TagInfo(id=tag.id, name=tag.name, color=tag.color) for tag in tags],
+            created_at=db_feed.created_at.isoformat(),
+            updated_at=db_feed.updated_at.isoformat(),
+            last_fetched_at=None
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error adding RSS feed: {e}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to add RSS feed: {str(e)}"
         )
 
 
-@router.delete("/{feed_url:path}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_rss_feed(feed_url: str):
+@router.put("/{feed_id}", response_model=RSSFeedResponse)
+async def update_rss_feed(feed_id: int, feed_update: RSSFeedUpdate, db: Session = Depends(get_db)):
     """
-    Delete an RSS feed source by URL.
+    Update an existing RSS feed.
 
     Args:
-        feed_url: URL of the RSS feed to delete (URL-encoded)
+        feed_id: ID of the feed to update
+        feed_update: Updated feed data
+
+    Returns:
+        The updated RSS feed with tags
     """
     try:
-        # Read current feeds
-        feeds = read_rss_feeds_from_env()
-
-        # Find and remove the feed
-        original_count = len(feeds)
-        feeds = [f for f in feeds if f['url'] != feed_url]
-
-        if len(feeds) == original_count:
+        db_feed = db.query(RSSFeed).filter(RSSFeed.id == feed_id).first()
+        if not db_feed:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="RSS feed not found"
             )
 
-        # Write back to .env
-        write_rss_feeds_to_env(feeds)
+        # Update fields if provided
+        if feed_update.name is not None:
+            db_feed.name = feed_update.name
 
-        logger.info(f"Deleted RSS feed: {feed_url}")
+        if feed_update.description is not None:
+            db_feed.description = feed_update.description
+
+        if feed_update.is_active is not None:
+            db_feed.is_active = 1 if feed_update.is_active else 0
+
+        # Update tags if provided
+        if feed_update.tag_ids is not None:
+            # Verify all tags exist
+            tags = db.query(Tag).filter(Tag.id.in_(feed_update.tag_ids)).all()
+            if len(tags) != len(feed_update.tag_ids):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="One or more tag IDs not found"
+                )
+
+            # Remove existing tag assignments
+            db.execute(
+                rss_feed_tags.delete().where(rss_feed_tags.c.feed_id == feed_id)
+            )
+
+            # Add new tag assignments
+            for tag_id in feed_update.tag_ids:
+                db.execute(
+                    rss_feed_tags.insert().values(feed_id=feed_id, tag_id=tag_id)
+                )
+
+        db.commit()
+        db.refresh(db_feed)
+
+        # Get current tags
+        tags = db.query(Tag).join(
+            rss_feed_tags, Tag.id == rss_feed_tags.c.tag_id
+        ).filter(
+            rss_feed_tags.c.feed_id == feed_id
+        ).all()
+
+        logger.info(f"Updated RSS feed: {db_feed.name}")
+
+        return RSSFeedResponse(
+            id=db_feed.id,
+            name=db_feed.name,
+            url=db_feed.url,
+            description=db_feed.description,
+            is_active=bool(db_feed.is_active),
+            tags=[TagInfo(id=tag.id, name=tag.name, color=tag.color) for tag in tags],
+            created_at=db_feed.created_at.isoformat(),
+            updated_at=db_feed.updated_at.isoformat(),
+            last_fetched_at=db_feed.last_fetched_at.isoformat() if db_feed.last_fetched_at else None
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating RSS feed: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update RSS feed: {str(e)}"
+        )
+
+
+@router.delete("/{feed_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rss_feed(feed_id: int, db: Session = Depends(get_db)):
+    """
+    Delete an RSS feed source by ID.
+
+    Args:
+        feed_id: ID of the RSS feed to delete
+    """
+    try:
+        db_feed = db.query(RSSFeed).filter(RSSFeed.id == feed_id).first()
+        if not db_feed:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="RSS feed not found"
+            )
+
+        # Tag associations will be automatically deleted due to CASCADE
+        db.delete(db_feed)
+        db.commit()
+
+        logger.info(f"Deleted RSS feed: {db_feed.name}")
 
         return None
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error deleting RSS feed: {e}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete RSS feed: {str(e)}"

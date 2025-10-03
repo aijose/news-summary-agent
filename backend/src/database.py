@@ -5,9 +5,9 @@ This module sets up SQLAlchemy database connection, session management,
 and base model classes for the application.
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 from typing import Generator
@@ -48,6 +48,86 @@ def get_db() -> Generator[Session, None, None]:
         raise
     finally:
         db.close()
+
+
+class Tag(Base):
+    """
+    Tag model for categorizing RSS feeds.
+
+    Tags allow users to organize and filter RSS feeds by categories
+    like 'Technology', 'Politics', 'Science', etc.
+    """
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, nullable=False, index=True)
+    description = Column(String(200), nullable=True)
+    color = Column(String(7), nullable=True)  # Hex color code #RRGGBB
+
+    # Timestamps
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Tag(id={self.id}, name='{self.name}')>"
+
+    def to_dict(self) -> dict:
+        """Convert tag to dictionary for API responses."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "color": self.color,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class RSSFeed(Base):
+    """
+    RSS Feed model for storing feed sources.
+
+    This model stores RSS feed URLs and their associated metadata,
+    including tags for organization and filtering.
+    """
+    __tablename__ = "rss_feeds"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    url = Column(String(1000), unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Integer, default=1, nullable=False)  # 1 = active, 0 = inactive
+
+    # Timestamps
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    last_fetched_at = Column(DateTime, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<RSSFeed(id={self.id}, name='{self.name}', url='{self.url[:50]}...')>"
+
+    def to_dict(self) -> dict:
+        """Convert RSS feed to dictionary for API responses."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "url": self.url,
+            "description": self.description,
+            "is_active": bool(self.is_active),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "last_fetched_at": self.last_fetched_at.isoformat() if self.last_fetched_at else None
+        }
+
+
+# Association table for many-to-many relationship between RSS feeds and tags
+rss_feed_tags = Table(
+    'rss_feed_tags',
+    Base.metadata,
+    Column('feed_id', Integer, ForeignKey('rss_feeds.id', ondelete='CASCADE'), primary_key=True),
+    Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE'), primary_key=True),
+    Column('created_at', DateTime, default=func.now(), nullable=False)
+)
 
 
 class Article(Base):
