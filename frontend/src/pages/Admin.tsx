@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IngestionPanel } from '@/components/admin/IngestionPanel'
 import { DeleteArticlesPanel } from '@/components/admin/DeleteArticlesPanel'
 import { Database, Settings, BarChart3, Plus, Trash2, ExternalLink } from 'lucide-react'
-import { useRSSFeeds, useAddRSSFeed, useDeleteRSSFeed } from '@/hooks/useArticlesQuery'
+import { useRSSFeeds, useAddRSSFeed, useDeleteRSSFeed, useArticleStats } from '@/hooks/useArticlesQuery'
 
 export function Admin() {
   const [newFeedName, setNewFeedName] = useState('')
@@ -12,6 +12,7 @@ export function Admin() {
   const { data: rssFeeds, isLoading: feedsLoading } = useRSSFeeds()
   const { mutate: addFeed, isPending: isAdding } = useAddRSSFeed()
   const { mutate: deleteFeed, isPending: isDeleting } = useDeleteRSSFeed()
+  const { data: stats, isLoading: statsLoading } = useArticleStats()
 
   const handleAddFeed = (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,17 +83,27 @@ export function Admin() {
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Database Status:</span>
-                <span className="text-green-600 font-medium">Connected</span>
+                <span className="text-gray-600">Total Articles:</span>
+                <span className="text-blue-600 font-medium">
+                  {statsLoading ? 'Loading...' : stats?.database_stats?.total_articles?.toLocaleString() || '0'}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Vector Store:</span>
-                <span className="text-green-600 font-medium">Active</span>
+                <span className="text-gray-600">Recent (24h):</span>
+                <span className="text-green-600 font-medium">
+                  {statsLoading ? 'Loading...' : stats?.database_stats?.recent_articles_24h?.toLocaleString() || '0'}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">RSS Feeds:</span>
-                <span className="text-blue-600 font-medium">
+                <span className="text-purple-600 font-medium">
                   {feedsLoading ? 'Loading...' : `${rssFeeds?.length || 0} configured`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Vector Store:</span>
+                <span className="text-green-600 font-medium">
+                  {statsLoading ? 'Loading...' : `${stats?.vector_store_stats?.total_documents?.toLocaleString() || '0'} docs`}
                 </span>
               </div>
             </div>
@@ -118,8 +129,8 @@ export function Admin() {
                 <span className="text-sm text-gray-700">Vector Search</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <span className="text-sm text-gray-700">AI Features (API Key Required)</span>
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-sm text-gray-700">AI Analysis</span>
               </div>
             </div>
           </div>

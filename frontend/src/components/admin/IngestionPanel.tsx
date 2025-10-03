@@ -117,9 +117,9 @@ export function IngestionPanel() {
             <div>
               <h4 className="text-sm font-medium text-blue-800">About Article Ingestion</h4>
               <p className="text-sm text-blue-700 mt-1">
-                This process fetches the latest articles from 10 diverse RSS feeds including BBC, Reuters,
-                The Guardian, TechCrunch, Ars Technica, Science Daily, MIT News, Hacker News, NPR, and AP.
-                New articles are processed and added to the searchable database. Run this to refresh content.
+                This process fetches the latest articles from your configured RSS feeds.
+                New articles are processed and added to the searchable database with vector embeddings
+                for semantic search. Run this regularly to keep your content fresh.
               </p>
             </div>
           </div>
