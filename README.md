@@ -131,6 +131,77 @@ The application will be available at:
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs
 
+## Testing
+
+The project has comprehensive test coverage for both backend and frontend.
+
+### Backend Tests (106 tests)
+
+Run all backend tests:
+```bash
+cd backend
+uv run python -m pytest tests/ -v
+```
+
+Run specific test suites:
+```bash
+# Tags API tests (26 tests)
+uv run python -m pytest tests/test_api/test_tags.py -v
+
+# RSS Feeds API tests (29 tests)
+uv run python -m pytest tests/test_api/test_rss_feeds.py -v
+
+# Articles API tests (22 tests)
+uv run python -m pytest tests/test_api/test_articles.py -v
+
+# Database model tests (29 tests)
+uv run python -m pytest tests/test_models.py -v
+```
+
+Run tests with coverage:
+```bash
+uv run python -m pytest tests/ --cov=src --cov-report=html
+```
+
+### Frontend Tests (87 tests)
+
+Run all frontend tests:
+```bash
+cd frontend
+npm test
+```
+
+Run unit tests only:
+```bash
+npm run test:unit
+```
+
+Run E2E tests (requires running dev server):
+```bash
+# Terminal 1: Start dev server
+npm run dev
+
+# Terminal 2: Run E2E tests
+npm run test:e2e
+```
+
+Run tests in UI mode (interactive):
+```bash
+npm run test:ui
+```
+
+### Test Coverage
+
+- **Backend**: 106 passing tests
+  - API endpoints: CRUD operations, validation, pagination, filtering
+  - Database models: Field validation, constraints, serialization
+  - Fixtures: Isolated test database with SQLite in-memory
+
+- **Frontend**: 87 passing tests
+  - Unit tests: Components, hooks, utilities
+  - E2E tests: User workflows, tag filtering, article management
+  - Testing tools: Vitest, React Testing Library, Playwright
+
 ## Troubleshooting
 
 ### Quick Fixes for Common Issues
@@ -138,8 +209,7 @@ The application will be available at:
 1. **"Connection refused" when accessing API**: Use the background server command above
 2. **PostgreSQL connection errors**: The default SQLite configuration (in `.env.example`) works without any database setup
 3. **Server starts but can't access**: Make sure you're using the `nohup` command to run the server in background
-
-For detailed troubleshooting, see [backend/README.md](./backend/README.md#troubleshooting).
+4. **Tests failing with "module not found"**: Run `uv sync` in backend or `npm install` in frontend to ensure dependencies are installed
 
 ## Contributing
 
