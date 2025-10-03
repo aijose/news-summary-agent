@@ -12,6 +12,57 @@
 
 ---
 
+## 2025-10-03: RSS Feed Tag System Architecture
+
+**Decision**: Implement tag-based feed organization with database-backed storage
+**Context**: Users need to organize and filter RSS feeds by category (Technology, Science, etc.)
+**Rationale**:
+- **Database-backed tags**: Allows dynamic tag creation without code changes
+- **Many-to-many relationships**: Feeds can have multiple tags, tags can belong to multiple feeds
+- **Color coding**: Visual differentiation improves UX and quick identification
+- **Flexible filtering**: Tag-based filtering works across all article viewing pages
+- **Migration from .env**: Moving RSS feeds to database enables full CRUD operations
+
+**Implementation Details**:
+- Tag model: name, description, color (hex code), timestamps
+- RSSFeed model: name, url, description, is_active, timestamps
+- Association table: rss_feed_tags with cascade delete for data integrity
+- Client-side search filtering: Preserves vector search performance while allowing categorization
+
+**Alternatives Considered**:
+- Hardcoded categories (too inflexible)
+- Tag strings in metadata (no relational queries)
+- Separate microservice (overengineered)
+- Server-side search filtering (would require vector store changes)
+
+**Status**: ✅ Implemented
+
+---
+
+## 2025-10-03: Tag Filtering Strategy
+
+**Decision**: Use server-side filtering for article listing, client-side for search results
+**Context**: Different pages have different data retrieval patterns
+**Rationale**:
+- **Article listing** (Home/Browse): Backend filtering via query parameters is efficient and scalable
+- **Semantic search**: Client-side filtering preserves vector search ranking and avoids backend complexity
+- **Performance**: useMemo caching ensures client-side filtering is fast
+- **Consistency**: Same TagFilter component works across all pages
+
+**Implementation**:
+- Backend: `/api/v1/articles/?tags=1,2` filters by tag IDs with flexible source matching
+- Frontend: useMemo filters search results after vector similarity search completes
+- Smart matching: Handles source name variations ("Science Daily" vs "ScienceDaily")
+
+**Alternatives Considered**:
+- All server-side (would require modifying vector search logic)
+- All client-side (inefficient for large article lists)
+- Separate endpoints (code duplication)
+
+**Status**: ✅ Implemented
+
+---
+
 ## 2025-09-27: Frontend Framework Selection
 
 **Decision**: Use React + TypeScript instead of Streamlit

@@ -4,6 +4,46 @@
 
 ---
 
+## 2025-10-03: RSS Feed Tag System & Multi-Page Filtering
+
+### Added - Backend
+- **Tag Model**: Database model with name, description, and color (hex code)
+- **RSS Feed Database**: Migrated from .env file storage to SQLite with full CRUD operations
+- **Tag-Feed Relationships**: Many-to-many association table with cascade delete
+- **Tag Management API**: Complete CRUD endpoints at `/api/v1/tags`
+- **Enhanced Feed API**: RSS feed endpoints with tag support at `/api/v1/rss-feeds`
+- **Article Filtering**: Filter articles by tag IDs with flexible source name matching
+
+### Added - Frontend
+- **TagManagement Component**: Create, edit, delete tags with color picker and descriptions
+- **RSSFeedManagement Component**: Assign tags to feeds, toggle active/inactive status
+- **TagFilter Component**: Reusable clickable tag chips with selection state
+- **Browse Page**: New dedicated page for browsing articles with tag + time range filters
+- **React Query Hooks**: useTags, useCreateTag, useUpdateTag, useDeleteTag for tag operations
+- **Enhanced Admin Panel**: Integrated tag and feed management with visual indicators
+
+### Changed
+- **Home Page**: Added tag filtering to Latest News section
+- **Search Page**: Added client-side tag filtering for semantic search results
+- **Navigation**: Added Browse link to main navigation
+- **RSS Feed Management**: Moved from simple sidebar list to comprehensive management UI
+- **API Client**: Updated deleteRSSFeed signature to use feedId, added updateRSSFeed method
+
+### Technical Details
+- **Smart Source Matching**: Handles variations like "Science Daily" vs "ScienceDaily"
+- **Client-Side Search Filtering**: Fast tag filtering using useMemo for search results
+- **Type Safety**: Complete TypeScript interfaces for Tag, RSSFeed, and related types
+- **React Query Integration**: Automatic cache invalidation for tags and feeds
+
+### User Impact
+- ✅ Organize RSS feeds by category (Technology, Science, etc.)
+- ✅ Filter articles by tags on Home, Browse, and Search pages
+- ✅ Visual color-coded tag system for easy identification
+- ✅ Flexible feed management with database storage
+- ✅ Consistent filtering experience across all pages
+
+---
+
 ## 2025-09-27: Implementation Planning Complete
 
 ### Added

@@ -8,11 +8,13 @@ The News Summary Agent combines intelligent article retrieval with AI-powered an
 
 ## Key Features
 
-- **Semantic News Search**: Natural language queries to find relevant articles
+- **Semantic News Search**: Natural language queries to find relevant articles using vector similarity
+- **Tag-Based Organization**: Organize RSS feeds with customizable tags (Technology, Science, etc.) and filter articles by category
 - **Multi-Perspective Analysis**: Compare how different sources cover the same story
-- **Personalized Briefings**: AI-generated news summaries tailored to user interests
-- **Context & Background**: Historical context and connections for current events
-- **RAG-Powered Intelligence**: Retrieval-augmented generation for informed responses
+- **AI-Powered Summaries**: Generate brief, comprehensive, or analytical summaries of articles
+- **Customizable RSS Feeds**: Add, manage, and organize your own RSS feed sources with tag categorization
+- **Smart Filtering**: Filter news by tags across Home, Browse, and Search pages
+- **RAG-Powered Intelligence**: Retrieval-augmented generation for informed responses with ChromaDB vector store
 
 ## Tech Stack
 
@@ -69,6 +71,14 @@ Comprehensive project documentation is available in the `docs/` folder:
 - React web interface with responsive design
 - TanStack Query for efficient data management
 - Real-time article ingestion and search
+
+### ✅ Phase 3: Organization & Filtering - COMPLETED
+- **RSS Feed Tag System**: Organize feeds with custom tags (colors, descriptions)
+- **Database-Backed Feeds**: Migrated from .env to SQLite with full CRUD operations
+- **Tag Management UI**: Create, edit, delete tags with visual color indicators
+- **Multi-Page Filtering**: Filter articles by tags on Home, Browse, and Search pages
+- **Smart Source Matching**: Flexible matching between feed names and article sources
+- **Client-Side Search Filtering**: Fast tag filtering for semantic search results
 
 ### 🎯 Current Focus: Refinement & Production
 - Performance optimization and monitoring
