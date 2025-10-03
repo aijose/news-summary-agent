@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchInput } from '@/components/search/SearchInput'
 import { SearchResults } from '@/components/search/SearchResults'
 import { MultiPerspectiveAnalysis } from '@/components/analysis/MultiPerspectiveAnalysis'
+import { TagFilter } from '@/components/TagFilter'
 import { useSearchMutation } from '@/hooks/useSearchQuery'
+import { useRSSFeeds } from '@/hooks/useArticlesQuery'
 import type { SearchResult } from '@/types/article'
 
 export function Search() {
   const { mutate: performSearch, data: searchResponse, isPending: isLoading, error } = useSearchMutation()
+  const { data: rssFeeds } = useRSSFeeds()
   const [searchParams] = useSearchParams()
   const [selectedArticles, setSelectedArticles] = useState<SearchResult[]>([])
-  const [showAnalysis, setShowAnalysis] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
 
   // Auto-search if query parameter is present
   useEffect(() => {
@@ -27,13 +30,11 @@ export function Search() {
   const clearSearch = () => {
     // Clear by resetting component state - searchResponse will remain until next search
     setSelectedArticles([])
-    setShowAnalysis(false)
   }
 
   // Clear selections when new search is performed
   useEffect(() => {
     setSelectedArticles([])
-    setShowAnalysis(false)
   }, [searchResponse])
 
   const toggleArticleSelection = (article: SearchResult) => {
@@ -53,8 +54,61 @@ export function Search() {
 
   const clearSelection = () => {
     setSelectedArticles([])
-    setShowAnalysis(false)
   }
+
+  const handleTagToggle = (tagId: number) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    )
+  }
+
+  const handleClearAllTags = () => {
+    setSelectedTagIds([])
+  }
+
+  // Filter search results by selected tags (client-side filtering)
+  const filteredSearchResponse = useMemo(() => {
+    if (!searchResponse || selectedTagIds.length === 0) {
+      return searchResponse
+    }
+
+    // Get feed sources for selected tags
+    const selectedFeedSources = new Set<string>()
+    rssFeeds?.forEach(feed => {
+      const hasSelectedTag = feed.tags.some(tag => selectedTagIds.includes(tag.id))
+      if (hasSelectedTag) {
+        // Add various forms of the source name for flexible matching
+        selectedFeedSources.add(feed.name.toLowerCase())
+
+        // Add URL-based matching
+        if (feed.url.toLowerCase().includes('sciencedaily')) {
+          selectedFeedSources.add('sciencedaily')
+          selectedFeedSources.add('science daily')
+        } else if (feed.url.toLowerCase().includes('techcrunch')) {
+          selectedFeedSources.add('techcrunch')
+        } else if (feed.url.toLowerCase().includes('arstechnica')) {
+          selectedFeedSources.add('ars technica')
+          selectedFeedSources.add('arstechnica')
+        }
+      }
+    })
+
+    // Filter results
+    const filteredResults = searchResponse.results.filter(result => {
+      const resultSource = result.source.toLowerCase()
+      return Array.from(selectedFeedSources).some(feedSource =>
+        resultSource.includes(feedSource) || feedSource.includes(resultSource)
+      )
+    })
+
+    return {
+      ...searchResponse,
+      results: filteredResults,
+      total_found: filteredResults.length
+    }
+  }, [searchResponse, selectedTagIds, rssFeeds])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -75,8 +129,24 @@ export function Search() {
             initialQuery={searchParams.get('q') || ''}
           />
 
+          {/* Tag Filter */}
+          {searchResponse && searchResponse.results.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <TagFilter
+                selectedTagIds={selectedTagIds}
+                onTagToggle={handleTagToggle}
+                onClearAll={handleClearAllTags}
+              />
+              {selectedTagIds.length > 0 && filteredSearchResponse && (
+                <p className="text-sm text-gray-600 mt-3">
+                  Showing {filteredSearchResponse.total_found} of {searchResponse.total_found} results
+                </p>
+              )}
+            </div>
+          )}
+
           <SearchResults
-            searchResponse={searchResponse || null}
+            searchResponse={filteredSearchResponse || null}
             isLoading={isLoading}
             error={error instanceof Error ? error.message : error ? String(error) : null}
             selectedArticles={selectedArticles}
