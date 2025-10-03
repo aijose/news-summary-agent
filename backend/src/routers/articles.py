@@ -13,7 +13,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 import logging
 
-from ..database import get_db, Article, Summary
+from ..database import get_db, Article, Summary, RSSFeed, Tag, rss_feed_tags
 from ..services.vector_store import get_vector_store, search_articles_by_query
 from ..services.langchain_agent import get_news_agent, search_articles_with_ai
 from ..services.rss_ingestion import ingest_rss_feeds, ingest_single_feed
@@ -39,6 +39,7 @@ async def get_articles(
     limit: int = Query(10, ge=1, le=100, description="Number of articles to return"),
     source: Optional[str] = Query(None, description="Filter by source"),
     hours_back: Optional[int] = Query(None, ge=1, le=168, description="Hours back to search"),
+    tags: Optional[str] = Query(None, description="Comma-separated tag IDs to filter by"),
     db: Session = Depends(get_db)
 ):
     """
@@ -48,9 +49,65 @@ async def get_articles(
     - **limit**: Maximum number of articles to return
     - **source**: Optional source filter
     - **hours_back**: Optional time filter (hours back from now)
+    - **tags**: Optional comma-separated tag IDs (e.g., "1,2,3")
     """
     try:
         query = db.query(Article)
+
+        # Apply tag filter - filter by RSS feeds that have the specified tags
+        if tags:
+            try:
+                tag_ids = [int(tid.strip()) for tid in tags.split(',') if tid.strip()]
+                if tag_ids:
+                    # Get RSS feed URLs that have any of the specified tags
+                    feeds_with_tags = db.query(RSSFeed.url).join(
+                        rss_feed_tags, RSSFeed.id == rss_feed_tags.c.feed_id
+                    ).filter(
+                        rss_feed_tags.c.tag_id.in_(tag_ids)
+                    ).distinct().all()
+
+                    feed_urls = [feed.url for feed in feeds_with_tags]
+
+                    if feed_urls:
+                        # Match articles by source
+                        # Articles source field contains the RSS feed's title from XML
+                        # We need to match flexibly against feed names
+                        feed_sources = []
+                        for feed_url in feed_urls:
+                            feed = db.query(RSSFeed).filter(RSSFeed.url == feed_url).first()
+                            if feed:
+                                # Try to match by feed name or parts of it
+                                # For "Science Daily" -> match "ScienceDaily" or "Science"
+                                feed_sources.append(feed.name)
+                                # Also add URL-based matching for better coverage
+                                if 'sciencedaily' in feed_url.lower():
+                                    feed_sources.append('ScienceDaily')
+                                elif 'techcrunch' in feed_url.lower():
+                                    feed_sources.append('TechCrunch')
+                                elif 'arstechnica' in feed_url.lower():
+                                    feed_sources.append('Ars Technica')
+
+                        if feed_sources:
+                            # Build OR filter for all feed sources
+                            feed_filter = None
+                            for source_name in feed_sources:
+                                if feed_filter is None:
+                                    feed_filter = Article.source.ilike(f"%{source_name}%")
+                                else:
+                                    feed_filter = feed_filter | Article.source.ilike(f"%{source_name}%")
+
+                            if feed_filter is not None:
+                                query = query.filter(feed_filter)
+                    else:
+                        # No feeds found with those tags, return empty result
+                        return {
+                            "articles": [],
+                            "total": 0,
+                            "skip": skip,
+                            "limit": limit
+                        }
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid tag IDs format")
 
         # Apply source filter
         if source:
@@ -74,6 +131,8 @@ async def get_articles(
             "limit": limit
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error retrieving articles: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve articles")
