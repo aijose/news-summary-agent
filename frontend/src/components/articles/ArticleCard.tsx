@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowTopRightOnSquareIcon, ClockIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { useCreateSummary } from '@/hooks/useArticlesQuery'
+import { SaveToReadingListButton } from './SaveToReadingListButton'
 import type { Article } from '@/types/article'
 
 interface ArticleCardProps {
@@ -85,17 +86,20 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
           </div>
         </div>
 
-        {article.url && (
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-4 p-2 text-gray-400 hover:text-blue-600 transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
-          </a>
-        )}
+        <div className="flex items-center space-x-2 ml-4" onClick={(e) => e.stopPropagation()}>
+          <SaveToReadingListButton articleId={article.id} />
+          {article.url && (
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+            </a>
+          )}
+        </div>
       </div>
 
       {!compact && (

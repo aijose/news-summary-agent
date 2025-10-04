@@ -175,6 +175,37 @@ class Article(Base):
         }
 
 
+class ReadingList(Base):
+    """
+    Reading List model for saving articles to read later.
+
+    This model stores articles that users want to save for later reading,
+    with optional notes and timestamps.
+    """
+    __tablename__ = "reading_list"
+
+    id = Column(Integer, primary_key=True, index=True)
+    article_id = Column(Integer, ForeignKey('articles.id', ondelete='CASCADE'), nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+
+    # Timestamps
+    added_at = Column(DateTime, default=func.now(), nullable=False, index=True)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<ReadingList(id={self.id}, article_id={self.article_id})>"
+
+    def to_dict(self) -> dict:
+        """Convert reading list item to dictionary for API responses."""
+        return {
+            "id": self.id,
+            "article_id": self.article_id,
+            "notes": self.notes,
+            "added_at": self.added_at.isoformat() if self.added_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
 class UserPreference(Base):
     """
     User preferences model for personalization.

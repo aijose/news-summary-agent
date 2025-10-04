@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowTopRightOnSquareIcon, ArrowLeftIcon, SparklesIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { articleApi } from '@/services/api'
+import { SaveToReadingListButton } from '@/components/articles/SaveToReadingListButton'
 import type { Article, ArticleSummary } from '@/types/article'
 
 export function ArticleDetail() {
@@ -133,9 +134,12 @@ export function ArticleDetail() {
       {/* Article Header */}
       <article className="card p-8 mb-8">
         <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">
-            {article.title}
-          </h1>
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight flex-1">
+              {article.title}
+            </h1>
+            <SaveToReadingListButton articleId={article.id} showLabel={true} className="ml-4" />
+          </div>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
             <span className="font-medium text-blue-600">{article.source}</span>

@@ -13,7 +13,7 @@ import logging
 from .config import settings
 from .database import engine, Base
 from .routers import articles
-from .api import summaries, rss_feeds, admin, tags
+from .api import summaries, rss_feeds, admin, tags, reading_list
 from .utils.logging_config import setup_logging, RequestLoggingMiddleware
 from .utils.error_handling import (
     NewsAgentException,
@@ -79,6 +79,7 @@ app.include_router(summaries.router, prefix="/api/v1/summaries", tags=["summarie
 app.include_router(rss_feeds.router, prefix="/api/v1", tags=["rss-feeds"])
 app.include_router(tags.router, prefix="/api/v1", tags=["tags"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+app.include_router(reading_list.router, prefix="/api/v1", tags=["reading-list"])
 
 
 @app.get("/")

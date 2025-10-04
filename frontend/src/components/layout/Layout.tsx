@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Search, FileText, Settings, List } from 'lucide-react'
+import { Home, Search, FileText, Settings, List, Bookmark } from 'lucide-react'
 
 interface LayoutProps {
   children: ReactNode
@@ -13,6 +13,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: 'Home', icon: Home },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/browse', label: 'Browse', icon: List },
+    { path: '/reading-list', label: 'Reading List', icon: Bookmark },
     { path: '/admin', label: 'Admin', icon: Settings },
   ]
 
