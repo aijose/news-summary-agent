@@ -79,11 +79,11 @@ export function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for news topics, events, or keywords..."
-                className="input w-full pl-14 pr-4"
+                className="input w-full pl-14 pr-32"
               />
               <button
                 type="submit"
-                className="btn-primary absolute right-2 top-1/2 transform -translate-y-1/2"
+                className="btn-primary absolute right-0.5 top-1/2 transform -translate-y-1/2"
               >
                 Search
               </button>
