@@ -63,11 +63,11 @@ export function Home() {
         {/* Hero Section */}
         <div className="text-center mb-16 pt-8">
           <h1 className="text-5xl lg:text-6xl font-bold text-neutral-900 mb-6 text-balance">
-            Transform How You Read News
+            Pure News, Refined by AI
           </h1>
           <p className="text-xl text-neutral-600 mb-10 max-w-3xl mx-auto text-balance leading-relaxed">
-            AI-powered summaries, multi-perspective analysis, and intelligent insights
-            to help you stay informed in less time.
+            Browse curated articles, get AI-powered summaries, and filter by topic
+            to stay informed in less time.
           </p>
 
           {/* Main Search Bar */}

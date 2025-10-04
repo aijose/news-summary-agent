@@ -1,7 +1,7 @@
 {
-  "name": "news-summary-agent-frontend",
+  "name": "distill-frontend",
   "version": "1.0.0",
-  "description": "React TypeScript frontend for News Summary Agent",
+  "description": "React TypeScript frontend for Distill - Pure news, refined by AI",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -63,6 +63,6 @@
     "react",
     "typescript"
   ],
-  "author": "News Summary Agent",
+  "author": "Distill",
   "license": "MIT"
 }

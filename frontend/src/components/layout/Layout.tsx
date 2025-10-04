@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Search, FileText, Settings, List, Bookmark } from 'lucide-react'
+import { Home, Search, Settings, List, Bookmark } from 'lucide-react'
+import { DistillIcon } from '@/components/icons/DistillIcon'
 
 interface LayoutProps {
   children: ReactNode
@@ -26,13 +27,13 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center">
               <Link to="/" className="flex items-center gap-3">
                 <div className="p-2 bg-primary-600 rounded-lg">
-                  <FileText className="h-6 w-6 text-white" />
+                  <DistillIcon className="h-6 w-6 text-white" />
                 </div>
                 <div>
                   <span className="text-xl font-bold text-neutral-900 block leading-tight">
-                    News Summary Agent
+                    Distill
                   </span>
-                  <span className="text-xs text-neutral-500">AI-powered news intelligence</span>
+                  <span className="text-xs text-neutral-500">Pure news, refined by AI</span>
                 </div>
               </Link>
             </div>
@@ -72,7 +73,7 @@ export function Layout({ children }: LayoutProps) {
       <footer className="bg-white border-t border-neutral-200">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center text-neutral-600">
-            <p className="text-sm">&copy; 2025 News Summary Agent. Built with AI-powered intelligence.</p>
+            <p className="text-sm">&copy; 2025 Distill. Pure news, refined by AI.</p>
           </div>
         </div>
       </footer>
