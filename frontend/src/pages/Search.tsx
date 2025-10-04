@@ -111,10 +111,10 @@ export function Search() {
   }, [searchResponse, selectedTagIds, rssFeeds])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Search News</h1>
-        <p className="text-gray-600">
+        <h1 className="text-4xl font-bold text-neutral-900 mb-3">Search News</h1>
+        <p className="text-lg text-neutral-600 leading-relaxed max-w-3xl">
           Search through our collection of news articles using semantic search technology.
           Enable AI-Enhanced search for smarter results with contextual understanding.
         </p>
@@ -131,14 +131,14 @@ export function Search() {
 
           {/* Tag Filter */}
           {searchResponse && searchResponse.results.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="bg-white rounded-xl shadow-sm p-6">
               <TagFilter
                 selectedTagIds={selectedTagIds}
                 onTagToggle={handleTagToggle}
                 onClearAll={handleClearAllTags}
               />
               {selectedTagIds.length > 0 && filteredSearchResponse && (
-                <p className="text-sm text-gray-600 mt-3">
+                <p className="text-sm text-neutral-600 mt-4 font-medium">
                   Showing {filteredSearchResponse.total_found} of {searchResponse.total_found} results
                 </p>
               )}
@@ -158,7 +158,7 @@ export function Search() {
             <div className="text-center">
               <button
                 onClick={clearSearch}
-                className="btn-secondary"
+                className="btn-outline"
               >
                 Clear Search
               </button>
@@ -168,7 +168,7 @@ export function Search() {
 
         {/* Analysis sidebar */}
         <div className="lg:col-span-1">
-          <div className="sticky top-8">
+          <div className="sticky top-24">
             <MultiPerspectiveAnalysis
               selectedArticles={selectedArticles}
               onClearSelection={clearSelection}
