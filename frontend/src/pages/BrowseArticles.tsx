@@ -2,21 +2,29 @@ import { useState } from 'react'
 import { Filter, RefreshCw } from 'lucide-react'
 import { ArticleList } from '@/components/articles/ArticleList'
 import { TagFilter } from '@/components/TagFilter'
-import { useArticles } from '@/hooks/useArticlesQuery'
+import { useInfiniteArticles } from '@/hooks/useArticlesQuery'
 
 export function BrowseArticles() {
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const [hoursBack, setHoursBack] = useState<number>(168) // Default: 1 week
-  const [limit] = useState(20)
+  const limit = 20
 
-  const { data, isLoading, error, refetch } = useArticles({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteArticles({
     limit,
     hours_back: hoursBack,
     tags: selectedTagIds.length > 0 ? selectedTagIds.join(',') : undefined
   })
 
-  const articles = data?.articles || []
-  const total = data?.total || 0
+  const articles = data?.pages.flatMap(page => page.articles) || []
+  const total = data?.pages[0]?.total || 0
 
   const handleTagToggle = (tagId: number) => {
     setSelectedTagIds(prev =>
@@ -32,6 +40,12 @@ export function BrowseArticles() {
 
   const handleRefresh = () => {
     refetch()
+  }
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
   }
 
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null
@@ -111,8 +125,10 @@ export function BrowseArticles() {
           isLoading={isLoading}
           error={errorMessage}
           title=""
-          showLoadMore={false}
+          showLoadMore={hasNextPage}
+          onLoadMore={handleLoadMore}
           compact={false}
+          isLoadingMore={isFetchingNextPage}
         />
       </div>
     </div>

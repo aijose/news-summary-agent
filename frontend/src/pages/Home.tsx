@@ -3,22 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw } from 'lucide-react'
 import { ArticleList } from '@/components/articles/ArticleList'
 import { TagFilter } from '@/components/TagFilter'
-import { useArticles } from '@/hooks/useArticlesQuery'
+import { useInfiniteArticles } from '@/hooks/useArticlesQuery'
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const navigate = useNavigate()
 
-  const { data, isLoading, error, refetch } = useArticles({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteArticles({
     limit: 6,
     hours_back: 24,
     tags: selectedTagIds.length > 0 ? selectedTagIds.join(',') : undefined
   })
 
-  const articles = data?.articles || []
-  const total = data?.total || 0
-  const hasMore = articles.length < total
+  const articles = data?.pages.flatMap(page => page.articles) || []
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +35,12 @@ export function Home() {
 
   const handleRefresh = () => {
     refetch()
+  }
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
   }
 
   const handleTagToggle = (tagId: number) => {
@@ -140,8 +152,10 @@ export function Home() {
             isLoading={isLoading}
             error={errorMessage}
             title=""
-            showLoadMore={false}
+            showLoadMore={hasNextPage}
+            onLoadMore={handleLoadMore}
             compact={false}
+            isLoadingMore={isFetchingNextPage}
           />
 
           {articles.length > 0 && (

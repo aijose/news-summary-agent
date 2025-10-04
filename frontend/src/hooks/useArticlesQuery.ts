@@ -42,8 +42,9 @@ export function useArticles(filters: ArticleFilters = {}) {
 export function useInfiniteArticles(filters: Omit<ArticleFilters, 'skip'> = {}) {
   return useInfiniteQuery({
     queryKey: [...articleKeys.lists(), 'infinite', filters],
-    queryFn: ({ pageParam = 0 }) =>
+    queryFn: ({ pageParam }) =>
       articleApi.getArticles({ ...filters, skip: pageParam }),
+    initialPageParam: 0,
     getNextPageParam: (lastPage: ArticleListResponse) => {
       const nextSkip = lastPage.skip + lastPage.articles.length
       return nextSkip < lastPage.total ? nextSkip : undefined
