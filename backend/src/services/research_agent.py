@@ -191,16 +191,37 @@ class NewsResearchAgent:
             articles = db.query(Article).filter(Article.id.in_(article_ids)).all()
             db.close()
 
-            # Simple topic extraction (could be enhanced with NLP)
+            # Extract topics from titles and content
             topics = set()
+            stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'what', 'which', 'who', 'when', 'where', 'why', 'how'}
+
             for article in articles:
+                # Extract from metadata if available
                 if article.metadata and 'topic_keywords' in article.metadata:
                     topics.update(article.metadata['topic_keywords'])
+
+                # Extract from title (simple keyword extraction)
+                if article.title:
+                    words = article.title.lower().split()
+                    # Filter out stop words and short words, keep capitalized words from original title
+                    title_words = article.title.split()
+                    for i, word in enumerate(words):
+                        clean_word = word.strip('.,!?;:"\'-')
+                        # Keep words that are capitalized (likely proper nouns/topics) or longer keywords
+                        if (clean_word not in stop_words and len(clean_word) > 3) or (title_words[i][0].isupper() and clean_word not in stop_words):
+                            if title_words[i][0].isupper():
+                                topics.add(title_words[i].strip('.,!?;:"\'-'))
+                            elif len(clean_word) > 5:
+                                topics.add(clean_word)
+
+            # Create a summary with article titles
+            article_list = [{'id': a.id, 'title': a.title, 'source': a.source} for a in articles]
 
             return {
                 'success': True,
                 'topics': list(topics)[:10],  # Return top 10 topics
-                'article_count': len(articles)
+                'article_count': len(articles),
+                'articles': article_list
             }
         except Exception as e:
             logger.error(f"Error in extract_topics tool: {e}")

@@ -241,6 +241,48 @@ export function ResearchAgent() {
                             Found {step.result.count} results
                           </div>
                         )}
+                        {step.result.total_filtered !== undefined && (
+                          <div className="text-sm text-neutral-700">
+                            Filtered to {step.result.total_filtered} articles
+                          </div>
+                        )}
+                        {step.result.articles && step.result.articles.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {step.result.articles.slice(0, 5).map((article: any, i: number) => (
+                              <div key={i} className="text-sm text-neutral-600">
+                                • {article.title}
+                              </div>
+                            ))}
+                            {step.result.articles.length > 5 && (
+                              <div className="text-xs text-neutral-400 mt-1">
+                                And {step.result.articles.length - 5} more...
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {step.result.categorized && (
+                          <div className="mt-2">
+                            {Object.entries(step.result.categorized).map(([source, ids]: [string, any]) => (
+                              <div key={source} className="text-sm text-neutral-700">
+                                <span className="font-semibold capitalize">{source}:</span> {ids.length} article{ids.length !== 1 ? 's' : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {step.result.topics && step.result.topics.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {step.result.topics.map((topic: string, i: number) => (
+                              <span key={i} className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs font-medium">
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {step.result.topics && step.result.topics.length === 0 && step.result.article_count > 0 && (
+                          <div className="text-sm text-neutral-500 italic mt-2">
+                            No topics extracted (analyzed {step.result.article_count} article{step.result.article_count !== 1 ? 's' : ''})
+                          </div>
+                        )}
                         {step.result.summary && (
                           <div className="text-sm text-neutral-700 mt-2">
                             {step.result.summary}
