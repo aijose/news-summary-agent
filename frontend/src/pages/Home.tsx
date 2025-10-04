@@ -58,28 +58,28 @@ export function Home() {
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div className="min-h-screen">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 text-balance">
-            News Summary Agent
+        <div className="text-center mb-16 pt-8">
+          <h1 className="text-5xl lg:text-6xl font-bold text-neutral-900 mb-6 text-balance">
+            Transform How You Read News
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto text-balance">
-            Transform how you consume news with AI-powered summaries,
-            multi-perspective analysis, and intelligent insights.
+          <p className="text-xl text-neutral-600 mb-10 max-w-3xl mx-auto text-balance leading-relaxed">
+            AI-powered summaries, multi-perspective analysis, and intelligent insights
+            to help you stay informed in less time.
           </p>
 
           {/* Main Search Bar */}
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8">
+          <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
             <div className="relative">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <SearchIcon className="absolute left-5 top-1/2 transform -translate-y-1/2 text-neutral-400 h-5 w-5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for news topics, events, or keywords..."
-                className="input w-full pl-12 pr-4 py-4 text-lg"
+                className="input w-full pl-14 pr-4"
               />
               <button
                 type="submit"
@@ -93,44 +93,47 @@ export function Home() {
 
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="card p-8 text-center hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap className="h-8 w-8 text-blue-600" />
+          <div className="card p-8 text-center">
+            <div className="w-16 h-16 bg-secondary-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+              <Zap className="h-8 w-8 text-secondary-600" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">Intelligent Summaries</h3>
-            <p className="text-gray-600">
+            <h3 className="text-2xl font-bold mb-3 text-neutral-900">Intelligent Summaries</h3>
+            <p className="text-neutral-600 leading-relaxed">
               Get AI-powered summaries in multiple lengths with 90%+ fact preservation
             </p>
           </div>
 
-          <div className="card p-8 text-center hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="h-8 w-8 text-green-600" />
+          <div className="card p-8 text-center">
+            <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+              <TrendingUp className="h-8 w-8 text-primary-600" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">Multi-Perspective Analysis</h3>
-            <p className="text-gray-600">
+            <h3 className="text-2xl font-bold mb-3 text-neutral-900">Multi-Perspective Analysis</h3>
+            <p className="text-neutral-600 leading-relaxed">
               Compare how different sources cover the same story with bias detection
             </p>
           </div>
 
-          <div className="card p-8 text-center hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="h-8 w-8 text-purple-600" />
+          <div className="card p-8 text-center">
+            <div className="w-16 h-16 bg-neutral-200 rounded-xl flex items-center justify-center mx-auto mb-5">
+              <Clock className="h-8 w-8 text-neutral-700" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">Real-time Updates</h3>
-            <p className="text-gray-600">
+            <h3 className="text-2xl font-bold mb-3 text-neutral-900">Real-time Updates</h3>
+            <p className="text-neutral-600 leading-relaxed">
               Stay informed with continuous news ingestion and instant notifications
             </p>
           </div>
         </div>
 
         {/* Recent Articles Section */}
-        <div className="bg-white rounded-lg shadow-sm p-8 mb-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Latest News</h2>
+        <div className="bg-white rounded-xl shadow-sm p-8 mb-12">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-2">Latest News</h2>
+              <p className="text-neutral-600">Stay updated with the most recent articles</p>
+            </div>
             <button
               onClick={handleRefresh}
-              className="btn-outline flex items-center space-x-2"
+              className="btn-outline flex items-center gap-2"
               disabled={isLoading}
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -139,7 +142,7 @@ export function Home() {
           </div>
 
           {/* Tag Filter */}
-          <div className="mb-6 pb-6 border-b border-gray-200">
+          <div className="mb-8 pb-8 border-b border-neutral-200">
             <TagFilter
               selectedTagIds={selectedTagIds}
               onTagToggle={handleTagToggle}
@@ -159,7 +162,7 @@ export function Home() {
           />
 
           {articles.length > 0 && (
-            <div className="text-center mt-6">
+            <div className="text-center mt-8">
               <button
                 onClick={() => navigate('/search')}
                 className="btn-primary"
@@ -168,19 +171,6 @@ export function Home() {
               </button>
             </div>
           )}
-        </div>
-
-        {/* Status Notice */}
-        <div className="card p-6 bg-green-50 border-green-200">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-            <div>
-              <h4 className="font-semibold text-green-800">System Status</h4>
-              <p className="text-green-700">
-                Phase 2 Core Agent operational. Search functionality and article listings now available.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

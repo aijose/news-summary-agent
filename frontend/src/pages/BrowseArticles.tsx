@@ -58,22 +58,22 @@ export function BrowseArticles() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Articles</h1>
-        <p className="text-gray-600">
+        <h1 className="text-4xl font-bold text-neutral-900 mb-3">Browse Articles</h1>
+        <p className="text-lg text-neutral-600">
           Browse and filter articles by tags and time range.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+      <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Filter className="h-5 w-5 text-neutral-600" />
+          <h3 className="text-xl font-bold text-neutral-900">Filters</h3>
         </div>
 
         {/* Tag Filter */}
-        <div className="mb-6">
+        <div className="mb-8">
           <TagFilter
             selectedTagIds={selectedTagIds}
             onTagToggle={handleTagToggle}
@@ -82,16 +82,16 @@ export function BrowseArticles() {
         </div>
 
         {/* Time Range Filter */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-600 font-medium">Time range:</span>
+        <div className="flex flex-wrap gap-3 items-center">
+          <span className="text-sm text-neutral-600 font-semibold">Time range:</span>
           {timeRangeOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setHoursBack(option.value)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold min-h-[40px] ${
                 hoursBack === option.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
               {option.label}
@@ -100,19 +100,19 @@ export function BrowseArticles() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-neutral-900">
               {selectedTagIds.length > 0 ? 'Filtered ' : ''}Articles
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-neutral-600 mt-2">
               Showing {articles.length} of {total} articles
             </p>
           </div>
           <button
             onClick={handleRefresh}
-            className="btn-outline flex items-center space-x-2"
+            className="btn-outline flex items-center gap-2"
             disabled={isLoading}
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />

@@ -55,8 +55,8 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
   }
 
   const cardClasses = compact
-    ? "card p-4 hover:shadow-md transition-shadow cursor-pointer"
-    : "card p-6 hover:shadow-lg transition-shadow"
+    ? "card p-6 cursor-pointer"
+    : "card p-8"
 
   // Determine which summary to display
   const displaySummary = generatedSummary || article.metadata?.ai_summary
@@ -65,36 +65,35 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
 
   return (
     <article className={cardClasses} onClick={handleCardClick}>
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className={`font-semibold text-gray-900 line-clamp-2 mb-2 ${compact ? 'text-base' : 'text-lg'}`}>
+          <h3 className={`font-bold text-neutral-900 line-clamp-2 mb-3 leading-tight ${compact ? 'text-lg' : 'text-2xl'}`}>
             {article.title}
           </h3>
-          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-            <span className="font-medium">{article.source}</span>
-            <span>•</span>
-            <div className="flex items-center space-x-1">
-              <ClockIcon className="h-4 w-4" />
+          <div className="flex items-center flex-wrap gap-3 text-sm text-neutral-600 mb-4">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary-50 text-primary-700 font-semibold text-xs">
+              {article.source}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <ClockIcon className="h-4 w-4 text-neutral-500" />
               <span>{formatDate(article.published_date)}</span>
             </div>
             {!compact && (
-              <>
-                <span>•</span>
-                <span>{getReadingTime(article.content)} min read</span>
-              </>
+              <span className="text-neutral-500">{getReadingTime(article.content)} min read</span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 ml-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 ml-6" onClick={(e) => e.stopPropagation()}>
           <SaveToReadingListButton articleId={article.id} />
           {article.url && (
             <a
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+              className="p-2 text-neutral-400 hover:text-primary-600 rounded-lg hover:bg-neutral-100"
               onClick={(e) => e.stopPropagation()}
+              title="Read original article"
             >
               <ArrowTopRightOnSquareIcon className="h-5 w-5" />
             </a>
@@ -103,9 +102,9 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
       </div>
 
       {!compact && (
-        <div className="text-gray-700 line-clamp-3 mb-4">
-          {article.content.length > 200
-            ? `${article.content.substring(0, 200)}...`
+        <div className="text-neutral-700 line-clamp-3 mb-6 text-base leading-relaxed">
+          {article.content.length > 250
+            ? `${article.content.substring(0, 250)}...`
             : article.content
           }
         </div>
@@ -113,34 +112,36 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
 
       {/* Summarize Button */}
       {!compact && !displaySummary && (
-        <div className="mb-4">
+        <div className="mb-6">
           <button
             onClick={handleSummarize}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-secondary-500 rounded-lg hover:bg-secondary-600 disabled:bg-neutral-300 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             <SparklesIcon className="h-4 w-4" />
-            {isGenerating ? 'Generating...' : 'Summarize'}
+            {isGenerating ? 'Generating...' : 'Generate Summary'}
           </button>
         </div>
       )}
 
       {/* Display Summary */}
       {shouldShowSummary && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
-          <div className="text-sm font-medium text-blue-800 mb-2">
-            AI Summary {generatedSummary && <span className="text-xs text-blue-600">(Just generated)</span>}
+        <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-5 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary-800 mb-3">
+            <SparklesIcon className="h-4 w-4" />
+            <span>AI Summary</span>
+            {generatedSummary && <span className="text-xs font-normal text-primary-600">(Just generated)</span>}
           </div>
-          <div className="text-sm text-blue-900 prose prose-sm max-w-none">
-            {displaySummary.split('\n').map((line, index) => {
+          <div className="text-sm text-primary-900 prose prose-sm max-w-none leading-relaxed">
+            {displaySummary.split('\n').map((line: string, index: number) => {
               // Bold headers (lines starting with **)
               if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
                 const text = line.trim().slice(2, -2)
-                return <div key={index} className="font-semibold text-blue-900 mt-3 mb-1">{text}</div>
+                return <div key={index} className="font-bold text-primary-900 mt-3 mb-2">{text}</div>
               }
               // Bullet points
               if (line.trim().startsWith('•')) {
-                return <div key={index} className="ml-4 mb-1">{line.trim()}</div>
+                return <div key={index} className="ml-4 mb-1.5">{line.trim()}</div>
               }
               // Regular paragraphs
               if (line.trim()) {
@@ -153,13 +154,13 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
       )}
 
       {article.metadata && Object.keys(article.metadata).length > 0 && !compact && (
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-neutral-200">
           {article.metadata.topic_keywords && Array.isArray(article.metadata.topic_keywords) && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-2">
               {article.metadata.topic_keywords.slice(0, 3).map((keyword: string, index: number) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+                  className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
                 >
                   {keyword}
                 </span>

@@ -1,5 +1,4 @@
 import { useTags } from '@/hooks/useArticlesQuery'
-import type { Tag } from '@/types/article'
 
 interface TagFilterProps {
   selectedTagIds: number[]
@@ -27,8 +26,8 @@ export function TagFilter({ selectedTagIds, onTagToggle, onClearAll }: TagFilter
   const hasSelection = selectedTagIds.length > 0
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="text-sm text-gray-600 font-medium">Filter by:</span>
+    <div className="flex flex-wrap gap-3 items-center">
+      <span className="text-sm text-neutral-600 font-semibold">Filter by:</span>
 
       {tags.map((tag) => {
         const isSelected = selectedTagIds.includes(tag.id)
@@ -37,21 +36,21 @@ export function TagFilter({ selectedTagIds, onTagToggle, onClearAll }: TagFilter
           <button
             key={tag.id}
             onClick={() => onTagToggle(tag.id)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold min-h-[40px] ${
               isSelected
-                ? 'text-white shadow-md scale-105'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'text-white shadow-md'
+                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border-2 border-transparent'
             }`}
             style={
               isSelected
-                ? { backgroundColor: tag.color || '#3B82F6' }
+                ? { backgroundColor: tag.color || '#4f46e5', borderColor: tag.color || '#4f46e5' }
                 : undefined
             }
             title={tag.description || tag.name}
           >
             {tag.name}
             {isSelected && (
-              <span className="ml-1">✓</span>
+              <span className="ml-1.5">✓</span>
             )}
           </button>
         )
@@ -60,7 +59,7 @@ export function TagFilter({ selectedTagIds, onTagToggle, onClearAll }: TagFilter
       {hasSelection && (
         <button
           onClick={onClearAll}
-          className="ml-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+          className="ml-2 px-4 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg min-h-[40px]"
         >
           Clear all
         </button>
