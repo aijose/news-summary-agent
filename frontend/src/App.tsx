@@ -7,6 +7,7 @@ import { ArticleDetail } from '@/pages/ArticleDetail'
 import { ReadingList } from '@/pages/ReadingList'
 import { Admin } from '@/pages/Admin'
 import { Help } from '@/pages/Help'
+import { ResearchAgent } from '@/pages/ResearchAgent'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/browse" element={<BrowseArticles />} />
           <Route path="/reading-list" element={<ReadingList />} />
+          <Route path="/research-agent" element={<ResearchAgent />} />
           <Route path="/help" element={<Help />} />
           <Route path="/article/:id" element={<ArticleDetail />} />
           <Route path="/admin" element={<Admin />} />

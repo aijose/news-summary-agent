@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Search, Settings, List, Bookmark, HelpCircle } from 'lucide-react'
+import { Home, Search, Settings, List, Bookmark, HelpCircle, Sparkles } from 'lucide-react'
 import { DistillIcon } from '@/components/icons/DistillIcon'
 
 interface LayoutProps {
@@ -15,6 +15,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/search', label: 'Search', icon: Search },
     { path: '/browse', label: 'Browse', icon: List },
     { path: '/reading-list', label: 'Reading List', icon: Bookmark },
+    { path: '/research-agent', label: 'Research Agent', icon: Sparkles },
     { path: '/help', label: 'Help', icon: HelpCircle },
     { path: '/admin', label: 'Admin', icon: Settings },
   ]

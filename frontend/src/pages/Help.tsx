@@ -1,7 +1,20 @@
-import { Search, List, Bookmark, Sparkles, Filter, Eye, Zap } from 'lucide-react'
+import { Search, List, Bookmark, Sparkles, Filter, Eye, Zap, Brain } from 'lucide-react'
 
 export function Help() {
   const features = [
+    {
+      icon: Brain,
+      title: 'Research Agent',
+      description: 'Autonomous AI agent for complex multi-step research',
+      instructions: [
+        'Navigate to the Research Agent page from the main menu',
+        'Enter a complex research question in natural language',
+        'The agent creates a plan showing the steps it will take',
+        'Watch as the agent autonomously executes each step',
+        'Review comprehensive results including summaries, analyses, and perspectives',
+        'Example: "Find recent AI regulation articles and analyze different political perspectives"'
+      ]
+    },
     {
       icon: List,
       title: 'Browse Articles',

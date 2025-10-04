@@ -200,6 +200,30 @@ export const articleApi = {
   }
 }
 
+// Research Agent API
+export const researchAgentApi = {
+  // Perform research with plan and execution
+  research: async (query: string, sessionId?: string) => {
+    const response = await apiClient.post('/research-agent/research', {
+      query,
+      session_id: sessionId
+    })
+    return response.data
+  },
+
+  // Create plan only (without execution)
+  createPlan: async (query: string) => {
+    const response = await apiClient.post('/research-agent/plan', { query })
+    return response.data
+  },
+
+  // Execute a pre-created plan
+  executePlan: async (plan: any) => {
+    const response = await apiClient.post('/research-agent/execute-plan', plan)
+    return response.data
+  }
+}
+
 // Health check
 export const healthApi = {
   check: async () => {
