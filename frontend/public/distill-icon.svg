@@ -1,0 +1,54 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Funnel shape representing refinement/distillation -->
+  <defs>
+    <linearGradient id="distill-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="1" />
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Top wide opening (multiple sources) -->
+  <path
+    d="M4 6 L20 6 L16 12 L8 12 Z"
+    fill="url(#distill-gradient)"
+    stroke="#4f46e5"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Middle narrowing section -->
+  <path
+    d="M8 12 L10 16 L14 16 L16 12"
+    fill="url(#distill-gradient)"
+    stroke="#4f46e5"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Bottom refined output (single drop) -->
+  <circle
+    cx="12"
+    cy="19"
+    r="1.5"
+    fill="#4f46e5"
+    opacity="0.9"
+  />
+
+  <!-- Subtle accent lines showing flow -->
+  <path
+    d="M7 8 L8.5 10.5"
+    stroke="#4f46e5"
+    stroke-width="1"
+    stroke-linecap="round"
+    opacity="0.4"
+  />
+  <path
+    d="M17 8 L15.5 10.5"
+    stroke="#4f46e5"
+    stroke-width="1"
+    stroke-linecap="round"
+    opacity="0.4"
+  />
+</svg>
