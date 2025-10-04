@@ -283,9 +283,9 @@ class NewsResearchAgent:
             query_obj = db.query(Article).filter(
                 Article.published_date >= start_dt,
                 Article.published_date <= end_dt
-            )
+            ).order_by(Article.published_date.desc())
 
-            articles = query_obj.limit(50).all()
+            articles = query_obj.limit(100).all()
             db.close()
 
             return {
@@ -430,8 +430,37 @@ Keep plans simple (3-5 steps max). Be efficient."""
 
         # Detect query intent and create appropriate plan
 
+        # Check for time range keywords (e.g., "past 5 days", "last week")
+        import re
+        time_match = re.search(r'(past|last)\s+(\d+)\s+(day|week|month|hour)s?', query_lower)
+        if time_match:
+            number = int(time_match.group(2))
+            unit = time_match.group(3)
+
+            # Calculate date range
+            now = datetime.now(timezone.utc)
+            if unit == 'hour':
+                start_date = (now - timedelta(hours=number)).isoformat()
+            elif unit == 'day':
+                start_date = (now - timedelta(days=number)).isoformat()
+            elif unit == 'week':
+                start_date = (now - timedelta(weeks=number)).isoformat()
+            elif unit == 'month':
+                start_date = (now - timedelta(days=number * 30)).isoformat()
+
+            plan.append({
+                'step': step_num,
+                'tool': 'get_by_timerange',
+                'description': f'Get articles from past {number} {unit}{"s" if number > 1 else ""}',
+                'params': {
+                    'start_date': start_date,
+                    'end_date': now.isoformat(),
+                    'query': query
+                }
+            })
+            step_num += 1
         # Check for trending/recent keywords
-        if any(word in query_lower for word in ['trending', 'recent', 'latest', 'this week', 'this month']):
+        elif any(word in query_lower for word in ['trending', 'recent', 'latest', 'this week', 'this month']):
             plan.append({
                 'step': step_num,
                 'tool': 'get_trending',
@@ -439,15 +468,15 @@ Keep plans simple (3-5 steps max). Be efficient."""
                 'params': {'hours_back': 168 if 'week' in query_lower else 720}  # 1 week or 1 month
             })
             step_num += 1
-
-        # Always include search for the main query
-        plan.append({
-            'step': step_num,
-            'tool': 'search_articles',
-            'description': f'Search for articles about: {query}',
-            'params': {'query': query, 'limit': 10}
-        })
-        step_num += 1
+        # Default: search
+        else:
+            plan.append({
+                'step': step_num,
+                'tool': 'search_articles',
+                'description': f'Search for articles about: {query}',
+                'params': {'query': query, 'limit': 10}
+            })
+            step_num += 1
 
         # Check for perspective/bias analysis keywords
         if any(word in query_lower for word in ['perspective', 'bias', 'viewpoint', 'political', 'compare sources', 'different views']):
@@ -476,6 +505,18 @@ Keep plans simple (3-5 steps max). Be efficient."""
                 'tool': 'generate_summary',
                 'description': 'Generate AI summaries of key articles',
                 'params': {'summary_type': 'comprehensive'}
+            })
+            step_num += 1
+
+        # Check for source filtering keywords (substack, techcrunch, etc.)
+        source_keywords = ['substack', 'techcrunch', 'ars technica', 'wired', 'verge']
+        detected_sources = [source for source in source_keywords if source in query_lower]
+        if detected_sources:
+            plan.append({
+                'step': step_num,
+                'tool': 'filter_by_source',
+                'description': f'Filter to {", ".join(detected_sources)} sources',
+                'params': {'source_types': detected_sources}
             })
             step_num += 1
 
@@ -541,11 +582,44 @@ Keep plans simple (3-5 steps max). Be efficient."""
                         params['end_date'] = params.pop('end')
 
                     # Convert relative time strings to ISO dates
-                    if 'start_date' in params and 'hours_ago' in params['start_date']:
-                        hours = int(params['start_date'].split('_')[0])
-                        params['start_date'] = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
-                    if 'end_date' in params and params['end_date'] == 'now':
-                        params['end_date'] = datetime.now(timezone.utc).isoformat()
+                    def parse_relative_time(time_str: str) -> str:
+                        """Parse relative time strings like '5 days ago', '48_hours_ago', 'now'"""
+                        time_str = time_str.lower().strip()
+
+                        if time_str == 'now':
+                            return datetime.now(timezone.utc).isoformat()
+
+                        # Handle formats like "5 days ago", "3 weeks ago", "48 hours ago"
+                        import re
+                        match = re.match(r'(\d+)\s*(hour|day|week|month)s?\s*ago', time_str)
+                        if match:
+                            number = int(match.group(1))
+                            unit = match.group(2)
+
+                            if unit == 'hour':
+                                delta = timedelta(hours=number)
+                            elif unit == 'day':
+                                delta = timedelta(days=number)
+                            elif unit == 'week':
+                                delta = timedelta(weeks=number)
+                            elif unit == 'month':
+                                delta = timedelta(days=number * 30)  # Approximate
+
+                            return (datetime.now(timezone.utc) - delta).isoformat()
+
+                        # Handle format like "48_hours_ago"
+                        match = re.match(r'(\d+)_hours_ago', time_str)
+                        if match:
+                            hours = int(match.group(1))
+                            return (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+
+                        # If already ISO format or other format, return as-is
+                        return time_str
+
+                    if 'start_date' in params and isinstance(params['start_date'], str):
+                        params['start_date'] = parse_relative_time(params['start_date'])
+                    if 'end_date' in params and isinstance(params['end_date'], str):
+                        params['end_date'] = parse_relative_time(params['end_date'])
 
                 # Inject accumulated data if needed
                 if tool_name == 'analyze_perspectives' and 'article_ids' not in params:
