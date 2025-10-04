@@ -165,27 +165,37 @@ class ArticleProcessor:
         if len(sentences) < 3:
             return False
 
-        # Check for repeated sentences
+        # Check for repeated sentences (exact duplicates)
         sentence_counts = Counter(s.strip().lower() for s in sentences if len(s.strip()) > 10)
 
-        # If any sentence appears more than 3 times, it's likely repetitive
+        # If any sentence appears more than 5 times, it's likely repetitive
+        # (Increased from 3 to allow for list items and structured content)
         for count in sentence_counts.values():
-            if count > 3:
+            if count > 5:
                 return True
 
-        # Check for very similar sentences (basic approach)
+        # Check for very similar sentences with more lenient threshold
+        # Count how many sentence pairs start with the same words
+        similar_count = 0
         unique_sentences = set()
+
         for sentence in sentences:
             s = sentence.strip().lower()
             if len(s) > 10:
                 # Simple similarity check based on first few words
                 words = s.split()[:5]
                 key = ' '.join(words)
+
+                # Only flag as repetitive if we see MANY similar sentences (>10% of total)
+                # This allows for legitimate lists, steps, and structured content
                 if key in unique_sentences:
-                    return True
+                    similar_count += 1
                 unique_sentences.add(key)
 
-        return False
+        # Flag as repetitive only if more than 10% of sentences start similarly
+        # This is much more lenient than the previous "any match" approach
+        repetition_ratio = similar_count / len(sentences) if len(sentences) > 0 else 0
+        return repetition_ratio > 0.10
 
     def assess_content_quality(self, article_data: Dict[str, Any]) -> Dict[str, Any]:
         """

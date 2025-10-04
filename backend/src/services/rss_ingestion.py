@@ -333,7 +333,7 @@ class RSSIngestionService:
 
     async def ingest_all_feeds(self, max_articles_per_feed: int = None) -> Dict[str, Any]:
         """
-        Ingest articles from all configured RSS feeds.
+        Ingest articles from all ACTIVE RSS feeds in the database.
 
         Args:
             max_articles_per_feed: Maximum articles per feed
@@ -341,45 +341,148 @@ class RSSIngestionService:
         Returns:
             Overall ingestion results
         """
-        feed_urls = settings.RSS_FEEDS_LIST
-        if not feed_urls:
-            logger.warning("No RSS feeds configured")
-            return {'error': 'No RSS feeds configured'}
+        # Get active feeds from database instead of settings
+        from ..database import SessionLocal, RSSFeed
 
-        max_articles = max_articles_per_feed or settings.MAX_ARTICLES_PER_FEED
+        db = SessionLocal()
+        try:
+            active_feeds = db.query(RSSFeed).filter(RSSFeed.is_active == True).all()
 
-        overall_results = {
-            'feeds_processed': 0,
-            'total_new_articles': 0,
-            'total_duplicates': 0,
-            'total_failures': 0,
-            'feed_results': [],
+            if not active_feeds:
+                logger.warning("No active RSS feeds found in database")
+                return {'error': 'No active RSS feeds configured'}
+
+            max_articles = max_articles_per_feed or settings.MAX_ARTICLES_PER_FEED
+
+            overall_results = {
+                'feeds_processed': 0,
+                'total_new_articles': 0,
+                'total_duplicates': 0,
+                'total_failures': 0,
+                'feed_results': [],
+                'errors': []
+            }
+
+            # Process feeds concurrently with database feed names
+            tasks = []
+            feed_info_list = []
+            for feed in active_feeds:
+                # Pass feed name to use as article source
+                tasks.append(self.ingest_feed_with_name(feed.url, feed.name, max_articles))
+                feed_info_list.append({'id': feed.id, 'name': feed.name, 'url': feed.url})
+
+            if tasks:
+                feed_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                for i, result in enumerate(feed_results):
+                    if isinstance(result, Exception):
+                        logger.error(f"Feed ingestion failed: {result}")
+                        overall_results['errors'].append(str(result))
+                    else:
+                        overall_results['feeds_processed'] += 1
+                        overall_results['total_new_articles'] += result['new_articles']
+                        overall_results['total_duplicates'] += result['duplicate_articles']
+                        overall_results['total_failures'] += result['failed_articles']
+                        overall_results['feed_results'].append(result)
+
+                        # Update last_fetched_at for the feed
+                        feed_id = feed_info_list[i]['id']
+                        db_feed = db.query(RSSFeed).filter(RSSFeed.id == feed_id).first()
+                        if db_feed:
+                            db_feed.last_fetched_at = datetime.now(timezone.utc)
+                            db.commit()
+
+            logger.info(f"Ingestion complete: {overall_results['total_new_articles']} new articles")
+            return overall_results
+
+        finally:
+            db.close()
+
+    async def ingest_feed_with_name(self, feed_url: str, feed_name: str, max_articles: int = None) -> Dict[str, Any]:
+        """
+        Ingest articles from a single RSS feed using intelligent source naming.
+
+        Args:
+            feed_url: RSS feed URL
+            feed_name: Feed name from database
+            max_articles: Maximum number of articles to process
+
+        Returns:
+            Ingestion results summary
+        """
+        results = {
+            'feed_url': feed_url,
+            'feed_name': feed_name,
+            'total_entries': 0,
+            'new_articles': 0,
+            'duplicate_articles': 0,
+            'failed_articles': 0,
             'errors': []
         }
 
-        # Process feeds concurrently
-        tasks = []
-        for feed_url in feed_urls:
-            feed_url = feed_url.strip()
-            if feed_url:
-                tasks.append(self.ingest_feed(feed_url, max_articles))
+        try:
+            # Fetch RSS feed
+            feed = await self.fetch_rss_feed(feed_url)
+            if not feed:
+                results['errors'].append("Failed to fetch RSS feed")
+                return results
 
-        if tasks:
-            feed_results = await asyncio.gather(*tasks, return_exceptions=True)
+            # Determine source name intelligently:
+            # - For Substack feeds, use database name (has " - Substack" suffix)
+            # - For other feeds, use RSS feed title (original behavior)
+            rss_feed_title = getattr(feed.feed, 'title', '')
 
-            for i, result in enumerate(feed_results):
-                if isinstance(result, Exception):
-                    logger.error(f"Feed ingestion failed: {result}")
-                    overall_results['errors'].append(str(result))
-                else:
-                    overall_results['feeds_processed'] += 1
-                    overall_results['total_new_articles'] += result['new_articles']
-                    overall_results['total_duplicates'] += result['duplicate_articles']
-                    overall_results['total_failures'] += result['failed_articles']
-                    overall_results['feed_results'].append(result)
+            if 'substack' in feed_url.lower() or 'substack' in feed_name.lower():
+                # Use database name for Substack feeds (preserves tags)
+                source_name = feed_name
+            else:
+                # Use RSS feed's own title for consistency with existing articles
+                source_name = rss_feed_title if rss_feed_title else feed_name
 
-        logger.info(f"Ingestion complete: {overall_results['total_new_articles']} new articles")
-        return overall_results
+            feed_info = {
+                'title': source_name,
+                'description': getattr(feed.feed, 'description', ''),
+                'link': getattr(feed.feed, 'link', '')
+            }
+
+            entries = feed.entries
+            if max_articles:
+                entries = entries[:max_articles]
+
+            results['total_entries'] = len(entries)
+
+            # Process each entry
+            for entry in entries:
+                try:
+                    # Extract article data
+                    article_data = self.extract_article_data(entry, feed_info)
+                    if not article_data:
+                        results['failed_articles'] += 1
+                        continue
+
+                    # Save article
+                    saved_article = await self.save_article(article_data)
+                    if saved_article:
+                        if saved_article.created_at.replace(tzinfo=timezone.utc) >= \
+                           (datetime.now(timezone.utc) - timedelta(minutes=5)):
+                            results['new_articles'] += 1
+                        else:
+                            results['duplicate_articles'] += 1
+                    else:
+                        results['failed_articles'] += 1
+
+                except Exception as e:
+                    logger.error(f"Error processing article from {feed_url}: {e}")
+                    results['failed_articles'] += 1
+                    results['errors'].append(str(e))
+
+            logger.info(f"Ingested {results['new_articles']} new articles from {feed_name}")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error ingesting feed {feed_url}: {e}")
+            results['errors'].append(str(e))
+            return results
 
 
 # Convenience functions
