@@ -351,34 +351,137 @@ Keep plans simple (3-5 steps max). Be efficient."""
             }
 
     def _parse_plan_from_response(self, response_text: str, query: str) -> List[Dict[str, Any]]:
-        """Parse plan from LLM response (simplified for now)."""
-        # Simplified: create a basic plan
-        # In production, would parse structured JSON from LLM
-        return [
-            {
-                'step': 1,
-                'tool': 'search_articles',
-                'description': f'Search for articles about: {query}',
-                'params': {'query': query, 'limit': 10}
-            },
-            {
-                'step': 2,
+        """Parse plan from LLM response."""
+        import json
+        import re
+
+        try:
+            # Try to extract JSON from the response
+            # LLM might wrap it in markdown code blocks or add explanation
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(1)
+            else:
+                # Try to find raw JSON object
+                json_match = re.search(r'\{.*"steps".*\}', response_text, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(0)
+                else:
+                    # No JSON found, create query-specific plan
+                    return self._create_intelligent_plan(query)
+
+            # Parse the JSON
+            plan_data = json.loads(json_str)
+            steps = plan_data.get('steps', [])
+
+            # Validate and normalize steps
+            normalized_steps = []
+            for i, step in enumerate(steps):
+                params = step.get('parameters', step.get('params', {}))
+
+                # Remove placeholder strings like "results_from_step_2"
+                # These will be filled in during execution from accumulated_data
+                cleaned_params = {}
+                for key, value in params.items():
+                    if isinstance(value, str) and 'results_from_step' in value.lower():
+                        # Skip this parameter - it will be injected during execution
+                        continue
+                    cleaned_params[key] = value
+
+                normalized_steps.append({
+                    'step': i + 1,
+                    'tool': step.get('tool_name', step.get('tool', 'search_articles')),
+                    'description': step.get('description', ''),
+                    'params': cleaned_params
+                })
+
+            return normalized_steps if normalized_steps else self._create_intelligent_plan(query)
+
+        except (json.JSONDecodeError, Exception) as e:
+            logger.warning(f"Failed to parse LLM plan: {e}. Creating intelligent fallback.")
+            return self._create_intelligent_plan(query)
+
+    def _create_intelligent_plan(self, query: str) -> List[Dict[str, Any]]:
+        """Create an intelligent plan based on query analysis."""
+        query_lower = query.lower()
+        plan = []
+        step_num = 1
+
+        # Detect query intent and create appropriate plan
+
+        # Check for trending/recent keywords
+        if any(word in query_lower for word in ['trending', 'recent', 'latest', 'this week', 'this month']):
+            plan.append({
+                'step': step_num,
+                'tool': 'get_trending',
+                'description': 'Analyze trending topics from recent articles',
+                'params': {'hours_back': 168 if 'week' in query_lower else 720}  # 1 week or 1 month
+            })
+            step_num += 1
+
+        # Always include search for the main query
+        plan.append({
+            'step': step_num,
+            'tool': 'search_articles',
+            'description': f'Search for articles about: {query}',
+            'params': {'query': query, 'limit': 10}
+        })
+        step_num += 1
+
+        # Check for perspective/bias analysis keywords
+        if any(word in query_lower for word in ['perspective', 'bias', 'viewpoint', 'political', 'compare sources', 'different views']):
+            plan.append({
+                'step': step_num,
                 'tool': 'analyze_perspectives',
                 'description': 'Analyze different perspectives from found articles',
                 'params': {'focus': query}
-            }
-        ]
+            })
+            step_num += 1
+
+        # Check for comparison keywords
+        if any(word in query_lower for word in ['compare', 'difference', 'versus', 'vs']):
+            plan.append({
+                'step': step_num,
+                'tool': 'compare_articles',
+                'description': 'Compare articles from different sources',
+                'params': {}
+            })
+            step_num += 1
+
+        # Check for summary keywords
+        if any(word in query_lower for word in ['summarize', 'summary', 'summaries', 'key points']):
+            plan.append({
+                'step': step_num,
+                'tool': 'generate_summary',
+                'description': 'Generate AI summaries of key articles',
+                'params': {'summary_type': 'comprehensive'}
+            })
+            step_num += 1
+
+        # Check for topic extraction keywords
+        if any(word in query_lower for word in ['topics', 'themes', 'what are', 'top']):
+            plan.append({
+                'step': step_num,
+                'tool': 'extract_topics',
+                'description': 'Extract key topics and themes',
+                'params': {}
+            })
+            step_num += 1
+
+        # If no specific operations were detected, add a default analysis step
+        if len(plan) == 1:  # Only search step
+            plan.append({
+                'step': step_num,
+                'tool': 'analyze_perspectives',
+                'description': 'Analyze the found articles',
+                'params': {'focus': query}
+            })
+
+        return plan
 
     def _create_fallback_plan(self, query: str) -> List[Dict[str, Any]]:
         """Create a simple fallback plan if planning fails."""
-        return [
-            {
-                'step': 1,
-                'tool': 'search_articles',
-                'description': 'Search for relevant articles',
-                'params': {'query': query, 'limit': 10}
-            }
-        ]
+        return self._create_intelligent_plan(query)
 
     async def execute_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -409,11 +512,47 @@ Keep plans simple (3-5 steps max). Be efficient."""
                     })
                     continue
 
+                # Fix parameter names for get_by_timerange
+                if tool_name == 'get_by_timerange':
+                    if 'start' in params:
+                        params['start_date'] = params.pop('start')
+                    if 'end' in params:
+                        params['end_date'] = params.pop('end')
+
+                    # Convert relative time strings to ISO dates
+                    if 'start_date' in params and 'hours_ago' in params['start_date']:
+                        hours = int(params['start_date'].split('_')[0])
+                        params['start_date'] = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+                    if 'end_date' in params and params['end_date'] == 'now':
+                        params['end_date'] = datetime.now(timezone.utc).isoformat()
+
                 # Inject accumulated data if needed
                 if tool_name == 'analyze_perspectives' and 'article_ids' not in params:
                     # Use article IDs from previous search
                     if 'search_results' in accumulated_data:
                         params['article_ids'] = [r['article_id'] for r in accumulated_data['search_results'][:5]]
+                    elif 'article_ids' in accumulated_data:
+                        params['article_ids'] = accumulated_data['article_ids'][:5]
+
+                if tool_name == 'filter_by_source' and 'article_ids' not in params:
+                    # Use article IDs from previous get_by_timerange or search
+                    if 'timerange_articles' in accumulated_data:
+                        params['article_ids'] = [a['id'] for a in accumulated_data['timerange_articles']]
+                    elif 'search_results' in accumulated_data:
+                        params['article_ids'] = [r['article_id'] for r in accumulated_data['search_results']]
+                    elif 'article_ids' in accumulated_data:
+                        params['article_ids'] = accumulated_data['article_ids']
+
+                if tool_name == 'extract_topics' and 'article_ids' not in params:
+                    # Use article IDs from previous filter_by_source, search, or timerange
+                    if 'filtered_article_ids' in accumulated_data:
+                        params['article_ids'] = accumulated_data['filtered_article_ids']
+                    elif 'timerange_articles' in accumulated_data:
+                        params['article_ids'] = [a['id'] for a in accumulated_data['timerange_articles']]
+                    elif 'search_results' in accumulated_data:
+                        params['article_ids'] = [r['article_id'] for r in accumulated_data['search_results']]
+                    elif 'article_ids' in accumulated_data:
+                        params['article_ids'] = accumulated_data['article_ids']
 
                 result = await tool_func(**params)
 
@@ -421,6 +560,17 @@ Keep plans simple (3-5 steps max). Be efficient."""
                 if result.get('success'):
                     if tool_name == 'search_articles':
                         accumulated_data['search_results'] = result.get('results', [])
+                    elif tool_name == 'get_by_timerange':
+                        accumulated_data['timerange_articles'] = result.get('articles', [])
+                        accumulated_data['article_ids'] = [a['id'] for a in result.get('articles', [])]
+                    elif tool_name == 'filter_by_source':
+                        # Extract all article IDs from categorized results
+                        categorized = result.get('categorized', {})
+                        filtered_ids = []
+                        for source_type, ids in categorized.items():
+                            filtered_ids.extend(ids)
+                        accumulated_data['filtered_article_ids'] = filtered_ids
+                        accumulated_data['article_ids'] = filtered_ids
 
                 execution_results.append({
                     'step': step_num,
