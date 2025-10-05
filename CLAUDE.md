@@ -137,6 +137,39 @@ news-summary-agent/
 3. Create/update docs/change-log.md with session summary
 4. Commit all changes including documentation updates
 
+### Development Server Management
+
+**IMPORTANT: This project does NOT use Docker Compose for development**
+
+The backend and frontend run directly using their respective development servers:
+
+#### Backend (FastAPI)
+- **Running**: Already running via `uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload`
+- **Logs**: Located at `/Users/aijose/code/news-summary-agent/backend/server.log`
+- **Health check**: `curl http://localhost:8000/health`
+- **Restart backend**:
+  ```bash
+  pkill -f "uvicorn src.main:app"
+  cd backend && uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > server.log 2>&1 &
+  ```
+
+#### Frontend (React + Vite)
+- **Running**: Already running via `npm run dev` on port 3001
+- **Access**: http://localhost:3001
+- **Restart frontend**:
+  ```bash
+  cd frontend && npm run dev
+  ```
+
+#### Testing Backend Changes
+When making backend code changes:
+1. Check if uvicorn auto-reloaded (it has `--reload` flag enabled)
+2. If not auto-reloaded, restart backend using the command above
+3. Check logs: `tail -f /Users/aijose/code/news-summary-agent/backend/server.log`
+4. Verify health: `curl http://localhost:8000/health`
+
+**DO NOT use `docker compose logs` or any Docker commands** - the project runs natively without Docker.
+
 ## Integration Patterns
 
 ### RAG Implementation
