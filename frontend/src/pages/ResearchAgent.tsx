@@ -130,23 +130,67 @@ export function ResearchAgent() {
           </button>
         </form>
 
-        {/* Example Queries */}
+        {/* Agent Capabilities & Example Queries */}
         {!plan && !execution && (
-          <div className="mt-8 pt-8 border-t border-neutral-200">
-            <h3 className="text-sm font-semibold text-neutral-700 mb-4 uppercase tracking-wide">
-              Example Queries:
-            </h3>
-            <div className="grid gap-3">
-              {exampleQueries.map((example, index) => (
-                <button
-                  key={index}
-                  onClick={() => setQuery(example)}
-                  className="text-left p-4 bg-neutral-50 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 transition-colors"
-                >
-                  <span className="font-medium text-primary-600 mr-2">→</span>
-                  {example}
-                </button>
-              ))}
+          <div className="mt-8 pt-8 border-t border-neutral-200 space-y-6">
+            {/* Capabilities */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-700 mb-4 uppercase tracking-wide">
+                Agent Capabilities:
+              </h3>
+              <div className="grid md:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Search articles</strong> by keywords or topics</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Filter by time range</strong> (e.g., "last week", "past month")</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Filter by source</strong> (Substack, TechCrunch, Ars Technica, etc.)</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Generate AI summaries</strong> for articles</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Extract trending topics</strong> from recent articles</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Analyze perspectives</strong> across multiple articles</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Compare articles</strong> side-by-side</span>
+                </div>
+                <div className="flex items-start gap-2 text-neutral-700">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Categorize by bias</strong> (experimental)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Example Queries */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-700 mb-4 uppercase tracking-wide">
+                Example Queries:
+              </h3>
+              <div className="grid gap-3">
+                {exampleQueries.map((example, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setQuery(example)}
+                    className="text-left p-4 bg-neutral-50 hover:bg-neutral-100 rounded-lg text-sm text-neutral-700 transition-colors"
+                  >
+                    <span className="font-medium text-primary-600 mr-2">→</span>
+                    {example}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
