@@ -11,6 +11,7 @@ export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const [trendingPeriod, setTrendingPeriod] = useState<24 | 48 | 168>(24)
+  const [showTrending, setShowTrending] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -29,7 +30,7 @@ export function Home() {
 
   const articles = data?.pages.flatMap(page => page.articles) || []
 
-  // Fetch trending topics
+  // Fetch trending topics (manual trigger only)
   const {
     data: trendingData,
     isLoading: isTrendingLoading,
@@ -39,6 +40,23 @@ export function Home() {
     queryKey: ['trending-topics', trendingPeriod],
     queryFn: () => articleApi.getTrendingTopics(trendingPeriod),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: false, // Don't auto-fetch on mount
+  })
+
+  // Fetch sample articles for trending topics
+  const sampleArticleIds = trendingData?.article_ids?.slice(0, 5) || []
+  const {
+    data: sampleArticlesData,
+    isLoading: isSampleArticlesLoading,
+  } = useQuery({
+    queryKey: ['sample-articles', sampleArticleIds],
+    queryFn: async () => {
+      if (sampleArticleIds.length === 0) return []
+      const promises = sampleArticleIds.map(id => articleApi.getArticle(id))
+      return Promise.all(promises)
+    },
+    enabled: sampleArticleIds.length > 0 && showTrending,
+    staleTime: 5 * 60 * 1000,
   })
 
   const handleSearch = (e: React.FormEvent) => {
@@ -68,6 +86,11 @@ export function Home() {
 
   const handleClearAllTags = () => {
     setSelectedTagIds([])
+  }
+
+  const handleGenerateTrending = () => {
+    setShowTrending(true)
+    refetchTrending()
   }
 
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null
@@ -140,92 +163,128 @@ export function Home() {
         </div>
 
         {/* Trending Insights Section */}
-        <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl shadow-sm p-8 mb-12 border-2 border-primary-100">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-white" />
+        {showTrending && (
+          <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl shadow-sm p-8 mb-12 border-2 border-primary-100">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold text-neutral-900 mb-1">Trending Insights</h2>
+                  <p className="text-neutral-600">AI-powered analysis of current news trends</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-3xl font-bold text-neutral-900 mb-1">Trending Insights</h2>
-                <p className="text-neutral-600">AI-powered analysis of current news trends</p>
+              <div className="flex items-center gap-3">
+                {/* Time period selector */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTrendingPeriod(24)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trendingPeriod === 24
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                    }`}
+                  >
+                    24h
+                  </button>
+                  <button
+                    onClick={() => setTrendingPeriod(48)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trendingPeriod === 48
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                    }`}
+                  >
+                    48h
+                  </button>
+                  <button
+                    onClick={() => setTrendingPeriod(168)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      trendingPeriod === 168
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                    }`}
+                  >
+                    Week
+                  </button>
+                </div>
+                <button
+                  onClick={() => refetchTrending()}
+                  className="btn-outline flex items-center gap-2 bg-white"
+                  disabled={isTrendingLoading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isTrendingLoading ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {/* Time period selector */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setTrendingPeriod(24)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    trendingPeriod === 24
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
-                  }`}
-                >
-                  24h
-                </button>
-                <button
-                  onClick={() => setTrendingPeriod(48)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    trendingPeriod === 48
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
-                  }`}
-                >
-                  48h
-                </button>
-                <button
-                  onClick={() => setTrendingPeriod(168)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    trendingPeriod === 168
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
-                  }`}
-                >
-                  Week
-                </button>
-              </div>
-              <button
-                onClick={() => refetchTrending()}
-                className="btn-outline flex items-center gap-2 bg-white"
-                disabled={isTrendingLoading}
-              >
-                <RefreshCw className={`h-4 w-4 ${isTrendingLoading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
 
-          {/* Trending content */}
-          {isTrendingLoading ? (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-3"></div>
-              <p className="text-neutral-600">Analyzing trending topics...</p>
-            </div>
-          ) : trendingError ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <p className="text-red-800 font-medium">Failed to load trending insights</p>
-              <p className="text-red-600 text-sm mt-1">
-                {trendingError instanceof Error ? trendingError.message : 'Please try again later'}
-              </p>
-            </div>
-          ) : trendingData ? (
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="prose prose-primary max-w-none">
-                <p className="text-neutral-800 leading-relaxed whitespace-pre-wrap">
-                  {trendingData.analysis_text}
+            {/* Trending content */}
+            {isTrendingLoading ? (
+              <div className="bg-white rounded-lg p-8 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-3"></div>
+                <p className="text-neutral-600">Analyzing trending topics...</p>
+              </div>
+            ) : trendingError ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <p className="text-red-800 font-medium">Failed to load trending insights</p>
+                <p className="text-red-600 text-sm mt-1">
+                  {trendingError instanceof Error ? trendingError.message : 'Please try again later'}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-200 flex items-center justify-between text-sm text-neutral-500">
-                <span>
-                  Analyzed {trendingData.article_count} articles from the past {trendingData.analysis_period}
-                </span>
-                <span className="text-xs bg-neutral-100 px-3 py-1 rounded-full">
-                  Powered by {trendingData.model_info?.model || 'Claude AI'}
-                </span>
+            ) : trendingData ? (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="prose prose-primary max-w-none">
+                    <p className="text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                      {trendingData.analysis_text}
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-neutral-200 flex items-center justify-between text-sm text-neutral-500">
+                    <span>
+                      Analyzed {trendingData.article_count} articles from the past {trendingData.analysis_period}
+                    </span>
+                    <span className="text-xs bg-neutral-100 px-3 py-1 rounded-full">
+                      Powered by {trendingData.model_info?.model || 'Claude AI'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sample Articles */}
+                {sampleArticlesData && sampleArticlesData.length > 0 && (
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <h3 className="text-lg font-semibold text-neutral-900 mb-4">Sample Articles</h3>
+                    <div className="space-y-3">
+                      {sampleArticlesData.map((article) => (
+                        <div
+                          key={article.id}
+                          className="border border-neutral-200 rounded-lg p-4 hover:border-primary-300 hover:bg-primary-50/30 transition-colors cursor-pointer"
+                          onClick={() => navigate(`/article/${article.id}`)}
+                        >
+                          <h4 className="font-medium text-neutral-900 mb-1 line-clamp-2">
+                            {article.title}
+                          </h4>
+                          <div className="flex items-center gap-3 text-xs text-neutral-500">
+                            <span className="font-medium text-primary-600">{article.source}</span>
+                            <span>•</span>
+                            <span>{new Date(article.published_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {isSampleArticlesLoading && (
+                  <div className="bg-white rounded-lg p-6 text-center">
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mb-2"></div>
+                    <p className="text-sm text-neutral-600">Loading sample articles...</p>
+                  </div>
+                )}
               </div>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Recent Articles Section */}
         <div className="bg-white rounded-xl shadow-sm p-8 mb-12">
@@ -234,14 +293,26 @@ export function Home() {
               <h2 className="text-3xl font-bold text-neutral-900 mb-2">Latest News</h2>
               <p className="text-neutral-600">Stay updated with the most recent articles</p>
             </div>
-            <button
-              onClick={handleRefresh}
-              className="btn-outline flex items-center gap-2"
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
+            <div className="flex items-center gap-3">
+              {!showTrending && (
+                <button
+                  onClick={handleGenerateTrending}
+                  className="btn-primary flex items-center gap-2"
+                  disabled={isTrendingLoading}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Show Trending Insights</span>
+                </button>
+              )}
+              <button
+                onClick={handleRefresh}
+                className="btn-outline flex items-center gap-2"
+                disabled={isLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
           {/* Tag Filter */}
