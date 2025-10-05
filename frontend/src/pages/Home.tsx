@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw } from 'lucide-react'
+import { Search as SearchIcon, TrendingUp, Clock, Zap, RefreshCw, Sparkles } from 'lucide-react'
 import { ArticleList } from '@/components/articles/ArticleList'
 import { TagFilter } from '@/components/TagFilter'
 import { useInfiniteArticles } from '@/hooks/useArticlesQuery'
+import { useQuery } from '@tanstack/react-query'
+import { articleApi } from '@/services/api'
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+  const [trendingPeriod, setTrendingPeriod] = useState<24 | 48 | 168>(24)
   const navigate = useNavigate()
 
   const {
@@ -25,6 +28,18 @@ export function Home() {
   })
 
   const articles = data?.pages.flatMap(page => page.articles) || []
+
+  // Fetch trending topics
+  const {
+    data: trendingData,
+    isLoading: isTrendingLoading,
+    error: trendingError,
+    refetch: refetchTrending
+  } = useQuery({
+    queryKey: ['trending-topics', trendingPeriod],
+    queryFn: () => articleApi.getTrendingTopics(trendingPeriod),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -122,6 +137,94 @@ export function Home() {
               Stay informed with continuous news ingestion and instant notifications
             </p>
           </div>
+        </div>
+
+        {/* Trending Insights Section */}
+        <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl shadow-sm p-8 mb-12 border-2 border-primary-100">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-neutral-900 mb-1">Trending Insights</h2>
+                <p className="text-neutral-600">AI-powered analysis of current news trends</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Time period selector */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setTrendingPeriod(24)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    trendingPeriod === 24
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                  }`}
+                >
+                  24h
+                </button>
+                <button
+                  onClick={() => setTrendingPeriod(48)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    trendingPeriod === 48
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                  }`}
+                >
+                  48h
+                </button>
+                <button
+                  onClick={() => setTrendingPeriod(168)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    trendingPeriod === 168
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                  }`}
+                >
+                  Week
+                </button>
+              </div>
+              <button
+                onClick={() => refetchTrending()}
+                className="btn-outline flex items-center gap-2 bg-white"
+                disabled={isTrendingLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${isTrendingLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Trending content */}
+          {isTrendingLoading ? (
+            <div className="bg-white rounded-lg p-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-3"></div>
+              <p className="text-neutral-600">Analyzing trending topics...</p>
+            </div>
+          ) : trendingError ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <p className="text-red-800 font-medium">Failed to load trending insights</p>
+              <p className="text-red-600 text-sm mt-1">
+                {trendingError instanceof Error ? trendingError.message : 'Please try again later'}
+              </p>
+            </div>
+          ) : trendingData ? (
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="prose prose-primary max-w-none">
+                <p className="text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                  {trendingData.analysis_text}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-neutral-200 flex items-center justify-between text-sm text-neutral-500">
+                <span>
+                  Analyzed {trendingData.article_count} articles from the past {trendingData.analysis_period}
+                </span>
+                <span className="text-xs bg-neutral-100 px-3 py-1 rounded-full">
+                  Powered by {trendingData.model_info?.model || 'Claude AI'}
+                </span>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Recent Articles Section */}
