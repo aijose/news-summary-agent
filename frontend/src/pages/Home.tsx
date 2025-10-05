@@ -250,10 +250,10 @@ export function Home() {
                   </div>
                 </div>
 
-                {/* Sample Articles */}
+                {/* Trending Articles */}
                 {sampleArticlesData && sampleArticlesData.length > 0 && (
                   <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-neutral-900 mb-4">Sample Articles</h3>
+                    <h3 className="text-lg font-semibold text-neutral-900 mb-4">Sample Trending Articles</h3>
                     <div className="space-y-3">
                       {sampleArticlesData.map((article) => (
                         <div
@@ -278,7 +278,7 @@ export function Home() {
                 {isSampleArticlesLoading && (
                   <div className="bg-white rounded-lg p-6 text-center">
                     <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mb-2"></div>
-                    <p className="text-sm text-neutral-600">Loading sample articles...</p>
+                    <p className="text-sm text-neutral-600">Loading trending articles...</p>
                   </div>
                 )}
               </div>

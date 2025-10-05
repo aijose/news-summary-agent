@@ -133,16 +133,16 @@ export function ArticleDetail() {
 
       {/* Article Header */}
       <article className="card p-8 mb-8">
-        <header className="mb-6">
+        <header className="mb-8 pb-6 border-b border-gray-200">
           <div className="flex justify-between items-start mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight flex-1">
+            <h1 className="text-4xl font-bold text-neutral-900 leading-tight flex-1 mb-6">
               {article.title}
             </h1>
             <SaveToReadingListButton articleId={article.id} showLabel={true} className="ml-4" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-            <span className="font-medium text-blue-600">{article.source}</span>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600">
+            <span className="font-semibold text-primary-600">{article.source}</span>
             <span>•</span>
             <div className="flex items-center space-x-1">
               <ClockIcon className="h-4 w-4" />
@@ -158,7 +158,7 @@ export function ArticleDetail() {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                  className="flex items-center space-x-1 text-primary-600 hover:text-primary-800 font-medium"
                 >
                   <span>Read original</span>
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -169,9 +169,15 @@ export function ArticleDetail() {
         </header>
 
         {/* Article Content */}
-        <div className="prose prose-lg max-w-none">
-          <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-            {article.content}
+        <div className="prose prose-lg max-w-none mb-8">
+          <div className="text-neutral-800 leading-relaxed space-y-4">
+            {article.content.split('\n\n').map((paragraph, index) => (
+              paragraph.trim() && (
+                <p key={index} className="text-lg leading-relaxed">
+                  {paragraph}
+                </p>
+              )
+            ))}
           </div>
         </div>
 
@@ -196,8 +202,8 @@ export function ArticleDetail() {
       {/* AI Summaries Section */}
       <div className="card p-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-            <SparklesIcon className="h-6 w-6 text-blue-600" />
+          <h2 className="text-2xl font-bold text-neutral-900 flex items-center space-x-2">
+            <SparklesIcon className="h-6 w-6 text-primary-600" />
             <span>AI Summaries</span>
           </h2>
 
@@ -237,33 +243,44 @@ export function ArticleDetail() {
         {summaries.length > 0 ? (
           <div className="space-y-4">
             {summaries.map((summary, index) => (
-              <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <div className="flex justify-between items-start mb-3">
+              <div key={index} className="bg-primary-50 border-2 border-primary-200 rounded-xl p-6">
+                <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center space-x-2">
-                    <SparklesIcon className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-blue-800 capitalize">
+                    <SparklesIcon className="h-5 w-5 text-primary-600" />
+                    <span className="font-semibold text-primary-900 capitalize text-lg">
                       {summary.summary_type} Summary
                     </span>
                     {summary.cached && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
                         Cached
                       </span>
                     )}
                   </div>
-                  <span className="text-sm text-blue-600">
+                  <span className="text-sm text-primary-600 font-medium">
                     {formatDate(summary.generated_at)}
                   </span>
                 </div>
-                <div className="text-blue-900 leading-relaxed">
-                  {summary.summary_text}
+                <div className="text-neutral-900 leading-relaxed space-y-4 prose prose-primary max-w-none">
+                  {summary.summary_text.split('\n\n').map((paragraph, idx) => (
+                    paragraph.trim() && (
+                      <p key={idx} className="text-base leading-relaxed">
+                        {paragraph.split('\n').map((line, lineIdx) => (
+                          <span key={lineIdx}>
+                            {line}
+                            {lineIdx < paragraph.split('\n').length - 1 && <br />}
+                          </span>
+                        ))}
+                      </p>
+                    )
+                  ))}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-600">
-            <SparklesIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-lg mb-2">No summaries available yet</p>
+          <div className="text-center py-12 text-neutral-600">
+            <SparklesIcon className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+            <p className="text-lg mb-2 font-medium">No summaries available yet</p>
             <p>Generate an AI summary to get started with intelligent analysis.</p>
           </div>
         )}
