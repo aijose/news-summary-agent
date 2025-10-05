@@ -582,6 +582,11 @@ Keep plans simple (3-5 steps max). Be efficient."""
                     if 'end' in params:
                         params['end_date'] = params.pop('end')
 
+                # Fix parameter names for generate_summary
+                if tool_name == 'generate_summary':
+                    if 'type' in params:
+                        params['summary_type'] = params.pop('type')
+
                     # Convert relative time strings to ISO dates
                     def parse_relative_time(time_str: str) -> str:
                         """Parse relative time strings like '5 days ago', '48_hours_ago', 'now'"""
@@ -649,6 +654,17 @@ Keep plans simple (3-5 steps max). Be efficient."""
                         params['article_ids'] = [r['article_id'] for r in accumulated_data['search_results']]
                     elif 'article_ids' in accumulated_data:
                         params['article_ids'] = accumulated_data['article_ids']
+
+                if tool_name == 'generate_summary' and 'article_id' not in params:
+                    # Use first article ID from previous search or timerange
+                    if 'search_results' in accumulated_data and accumulated_data['search_results']:
+                        params['article_id'] = accumulated_data['search_results'][0]['article_id']
+                    elif 'timerange_articles' in accumulated_data and accumulated_data['timerange_articles']:
+                        params['article_id'] = accumulated_data['timerange_articles'][0]['id']
+                    elif 'filtered_article_ids' in accumulated_data and accumulated_data['filtered_article_ids']:
+                        params['article_id'] = accumulated_data['filtered_article_ids'][0]
+                    elif 'article_ids' in accumulated_data and accumulated_data['article_ids']:
+                        params['article_id'] = accumulated_data['article_ids'][0]
 
                 result = await tool_func(**params)
 
@@ -723,13 +739,20 @@ Keep plans simple (3-5 steps max). Be efficient."""
                         results_summary.append(f"Extracted Topics: {', '.join(topics)}")
                     elif tool == 'search_articles':
                         count = data.get('count', 0)
-                        results_summary.append(f"Found {count} relevant articles")
+                        results = data.get('results', [])
+                        articles_list = "\n".join([f"  - {r.get('title', 'Untitled')} (ID: {r.get('article_id')})" for r in results[:10]])
+                        results_summary.append(f"Found {count} relevant articles:\n{articles_list}")
                     elif tool == 'get_by_timerange':
                         count = data.get('count', 0)
-                        results_summary.append(f"Found {count} articles in time range")
+                        articles = data.get('articles', [])
+                        articles_list = "\n".join([f"  - {a.get('title', 'Untitled')} (ID: {a.get('id')})" for a in articles[:10]])
+                        results_summary.append(f"Found {count} articles in time range:\n{articles_list}")
                     elif tool == 'filter_by_source':
                         total = data.get('total_filtered', 0)
                         results_summary.append(f"Filtered to {total} articles from specified sources")
+                    elif tool == 'generate_summary':
+                        summary = data.get('summary', 'No summary available')
+                        results_summary.append(f"Article Summary: {summary}")
 
             logger.info(f"Collected {len(results_summary)} result summaries for synthesis")
 
