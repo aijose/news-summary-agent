@@ -445,6 +445,7 @@ class NewsAnalysisAgent:
                 'article_count': len(recent_articles),
                 'analysis_period': f'{hours_back} hours',
                 'generated_at': datetime.now(timezone.utc).isoformat(),
+                'article_ids': [article.id for article in recent_articles],
                 'model_info': {
                     'model': 'claude-3-sonnet',
                     'temperature': 0.1

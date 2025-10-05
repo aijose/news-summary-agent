@@ -236,7 +236,8 @@ class NewsResearchAgent:
                     'success': True,
                     'analysis': trending_data['analysis_text'],
                     'article_count': trending_data['article_count'],
-                    'period': trending_data['analysis_period']
+                    'period': trending_data['analysis_period'],
+                    'article_ids': trending_data.get('article_ids', [])
                 }
             return {'success': False, 'error': trending_data.get('error', 'Trending analysis failed')}
         except Exception as e:
@@ -658,6 +659,8 @@ Keep plans simple (3-5 steps max). Be efficient."""
                     elif tool_name == 'get_by_timerange':
                         accumulated_data['timerange_articles'] = result.get('articles', [])
                         accumulated_data['article_ids'] = [a['id'] for a in result.get('articles', [])]
+                    elif tool_name == 'get_trending':
+                        accumulated_data['article_ids'] = result.get('article_ids', [])
                     elif tool_name == 'filter_by_source':
                         # Extract all article IDs from categorized results
                         categorized = result.get('categorized', {})
