@@ -52,6 +52,7 @@ async def perform_research(request: ResearchRequest):
             "query": request.query,
             "plan": result['plan'],
             "execution": result['execution'],
+            "final_answer": result.get('final_answer'),
             "timestamp": result['timestamp']
         }
 

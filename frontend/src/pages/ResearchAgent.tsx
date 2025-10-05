@@ -24,6 +24,7 @@ export function ResearchAgent() {
   const [query, setQuery] = useState('')
   const [plan, setPlan] = useState<PlanStep[] | null>(null)
   const [execution, setExecution] = useState<ExecutionStep[] | null>(null)
+  const [finalAnswer, setFinalAnswer] = useState<string | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
   const { mutate: performResearch, isPending } = useMutation({
@@ -32,6 +33,7 @@ export function ResearchAgent() {
       console.log('Research result:', data)
       setPlan(data.plan.plan || data.plan.fallback_plan || [])
       setExecution(data.execution.execution_results || [])
+      setFinalAnswer(data.final_answer || null)
       setIsExecuting(false)
     },
     onError: (error) => {
@@ -45,6 +47,7 @@ export function ResearchAgent() {
     if (query.trim()) {
       setPlan(null)
       setExecution(null)
+      setFinalAnswer(null)
       setIsExecuting(true)
       performResearch(query.trim())
     }
@@ -316,14 +319,39 @@ export function ResearchAgent() {
             ))}
           </div>
 
+          {/* Final Answer - Most Prominent */}
+          {finalAnswer && execution.every(s => s.status !== 'pending') && (
+            <div className="mt-8 pt-8 border-t-2 border-primary-300">
+              <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl p-8 border-2 border-primary-200">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-primary-900 mb-4 text-2xl">Answer</h3>
+                    <div className="prose prose-primary max-w-none">
+                      <p className="text-lg text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                        {finalAnswer}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Summary */}
           {execution.every(s => s.status !== 'pending') && (
-            <div className="mt-8 pt-8 border-t border-neutral-200">
-              <div className="bg-primary-50 rounded-lg p-6">
-                <h3 className="font-bold text-primary-900 mb-3 text-lg">Research Complete</h3>
-                <p className="text-primary-800 leading-relaxed">
+            <div className="mt-8">
+              <div className="bg-neutral-50 rounded-lg p-6 border border-neutral-200">
+                <h3 className="font-semibold text-neutral-700 mb-2 text-sm uppercase tracking-wide">
+                  Execution Summary
+                </h3>
+                <p className="text-neutral-600 text-sm leading-relaxed">
                   The agent successfully executed {execution.filter(s => s.status === 'success').length} out of{' '}
-                  {execution.length} planned steps. Review the results above for comprehensive insights.
+                  {execution.length} planned steps.
                 </p>
               </div>
             </div>

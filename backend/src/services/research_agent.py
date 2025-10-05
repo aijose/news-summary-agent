@@ -695,6 +695,68 @@ Keep plans simple (3-5 steps max). Be efficient."""
             'final_data': accumulated_data
         }
 
+    async def _synthesize_final_answer(self, user_query: str, execution_result: Dict[str, Any]) -> str:
+        """
+        Synthesize a final answer from execution results.
+
+        Args:
+            user_query: Original user query
+            execution_result: Results from plan execution
+
+        Returns:
+            Final synthesized answer
+        """
+        try:
+            logger.info("Starting final answer synthesis")
+            # Gather all execution results
+            results_summary = []
+            for result in execution_result.get('execution_results', []):
+                if result['status'] == 'success':
+                    tool = result['tool']
+                    data = result['result']
+
+                    # Format based on tool type
+                    if tool == 'get_trending':
+                        results_summary.append(f"Trending Analysis: {data.get('analysis', '')}")
+                    elif tool == 'extract_topics':
+                        topics = data.get('topics', [])
+                        results_summary.append(f"Extracted Topics: {', '.join(topics)}")
+                    elif tool == 'search_articles':
+                        count = data.get('count', 0)
+                        results_summary.append(f"Found {count} relevant articles")
+                    elif tool == 'get_by_timerange':
+                        count = data.get('count', 0)
+                        results_summary.append(f"Found {count} articles in time range")
+                    elif tool == 'filter_by_source':
+                        total = data.get('total_filtered', 0)
+                        results_summary.append(f"Filtered to {total} articles from specified sources")
+
+            logger.info(f"Collected {len(results_summary)} result summaries for synthesis")
+
+            # Use LLM to synthesize final answer
+            synthesis_prompt = f"""Based on the research results below, provide a direct, concise answer to this question:
+
+Question: {user_query}
+
+Research Results:
+{chr(10).join(results_summary)}
+
+Provide a clear, focused answer that directly addresses the question. If the question asks for a specific number of items (e.g., "top 3"), limit your answer to exactly that many items."""
+
+            logger.info("Invoking LLM for final answer synthesis")
+            final_answer = await asyncio.to_thread(
+                self.analysis_agent.llm.invoke,
+                synthesis_prompt
+            )
+
+            answer_text = final_answer.content if hasattr(final_answer, 'content') else str(final_answer)
+            logger.info(f"Final answer synthesized: {len(answer_text)} characters")
+            return answer_text
+
+        except Exception as e:
+            logger.error(f"Error synthesizing final answer: {e}", exc_info=True)
+            return "Unable to synthesize final answer from research results."
+
     async def research(self, user_query: str) -> Dict[str, Any]:
         """
         Main entry point: Create plan and execute research.
@@ -713,10 +775,14 @@ Keep plans simple (3-5 steps max). Be efficient."""
         # Step 2: Execute plan
         execution_result = await self.execute_plan(plan_result)
 
+        # Step 3: Synthesize final answer
+        final_answer = await self._synthesize_final_answer(user_query, execution_result)
+
         return {
             'query': user_query,
             'plan': plan_result,
             'execution': execution_result,
+            'final_answer': final_answer,
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
 
