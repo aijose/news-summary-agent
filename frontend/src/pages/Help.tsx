@@ -112,6 +112,34 @@ export function Help() {
         </p>
       </div>
 
+      {/* Feature Overview */}
+      <div className="mb-12 card p-8 bg-gradient-to-br from-primary-50 to-secondary-50">
+        <h2 className="text-2xl font-bold text-neutral-900 mb-6">Main Features</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {features.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <div key={index} className="flex items-start gap-3 p-4 bg-white rounded-lg">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <Icon className="h-5 w-5 text-primary-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-900 mb-1">{feature.title}</h3>
+                  <p className="text-sm text-neutral-600">{feature.description}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Detailed Features */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-neutral-900 mb-6">Detailed Guide</h2>
+      </div>
+
       {/* Features Grid */}
       <div className="space-y-8">
         {features.map((feature, index) => {
