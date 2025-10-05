@@ -102,20 +102,29 @@ class NewsAnalysisAgent:
             Title: {article_title}
             Content: {article_content}
 
-            Create a {summary_type} summary using this EXACT format:
+            Create a {summary_type} summary with these specific requirements:
 
-            **Main Points:**
-            • [Key point 1]
-            • [Key point 2]
-            • [Key point 3]
+            FOR BRIEF SUMMARIES (100-150 words):
+            - Start with a single paragraph capturing the core message
+            - Include 2-3 bullet points highlighting the most important facts
+            - Focus only on what happened and immediate impact
+            - Omit background context and analysis
 
-            **Context:**
-            [2-3 sentences providing important background information]
+            FOR COMPREHENSIVE SUMMARIES (250-400 words):
+            - **Main Points:** 4-5 detailed bullet points covering key facts
+            - **Context:** 2-3 sentences providing background information
+            - **Details:** Additional important specifics, quotes, or data
+            - **Significance:** Why this matters and what it means
 
-            **Significance:**
-            [2-3 sentences explaining why this matters and its implications]
+            FOR ANALYTICAL SUMMARIES (300-500 words):
+            - **Executive Summary:** Opening paragraph with key takeaway
+            - **Key Findings:** 4-6 bullet points with analysis
+            - **Background & Context:** Historical context and related developments
+            - **Analysis:** Deep dive into implications, stakeholders, and impacts
+            - **Future Outlook:** What to watch for or expect next
+            - **Critical Questions:** 2-3 questions this raises
 
-            Keep the summary clear, objective, and informative. Use bullet points for readability.
+            Keep the summary clear, objective, and informative. Match the length and depth to the summary type requested.
 
             Summary:
             """
