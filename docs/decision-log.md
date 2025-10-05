@@ -12,6 +12,85 @@
 
 ---
 
+## 2025-10-04: Three-Tier AI Summary System
+
+**Decision**: Implement three distinct summary types with specialized prompts
+**Context**: Users have different information needs - some want quick facts, others need deep analysis
+**Rationale**:
+- **Brief (100-150 words)**: For users scanning headlines, time-constrained reading
+- **Comprehensive (250-400 words)**: Balanced approach with context and significance
+- **Analytical (300-500 words)**: For in-depth understanding with implications and outlook
+- **Distinct prompts**: Each type has specific requirements ensuring meaningful differentiation
+- **User choice**: Empowers users to match summary depth to their current needs
+
+**Implementation Details**:
+- Conditional prompt templates in `langchain_agent.py`
+- Summary type dropdown on all ArticleCard components
+- Structured output formats:
+  - Brief: Paragraph + bullet points
+  - Comprehensive: Main points + context + details + significance
+  - Analytical: Executive summary + findings + analysis + outlook + questions
+
+**Alternatives Considered**:
+- Single summary with length parameter: Rejected - wouldn't change structure/depth
+- Fixed length summaries: Rejected - doesn't address different use cases
+- Auto-detect from context: Rejected - users know their needs better than algorithm
+
+**Status**: ✅ Implemented and deployed
+
+---
+
+## 2025-10-04: On-Demand Trending Insights
+
+**Decision**: Make trending insights on-demand rather than auto-load
+**Context**: Trending analysis uses significant API calls and users may not always need it
+**Rationale**:
+- **Performance**: Saves API calls and page load time
+- **User control**: Users explicitly request analysis when interested
+- **Sample articles**: Include 5 sample trending articles for context
+- **Time periods**: Flexible analysis windows (24h, 48h, Week)
+- **Caching**: 5-minute cache reduces repeated API calls
+
+**Implementation Details**:
+- `enabled: false` in React Query config prevents auto-fetch
+- "Show Trending Insights" button in Latest News section
+- Sample articles fetched from trending API's article_ids
+- Clickable article cards navigate to full article detail
+
+**Alternatives Considered**:
+- Auto-load on every page visit: Rejected - unnecessary API usage
+- Widget on sidebar: Rejected - takes valuable screen space
+- Scheduled updates: Rejected - complexity not worth it for MVP
+
+**Status**: ✅ Implemented and deployed
+
+---
+
+## 2025-10-04: Article Content Formatting Enhancement
+
+**Decision**: Parse and format article content with proper paragraph breaks
+**Context**: Articles and summaries appeared as walls of text, reducing readability
+**Rationale**:
+- **Paragraph breaks**: Split content on double newlines (`\n\n`)
+- **Line breaks**: Preserve single newlines within paragraphs
+- **Typography**: Larger text, better spacing, improved hierarchy
+- **Visual consistency**: Primary color scheme throughout
+
+**Implementation Details**:
+- Article content: `content.split('\n\n').map(paragraph => <p>)`
+- Summary formatting: Handle both `\n\n` (paragraphs) and `\n` (lines)
+- Enhanced styling: text-4xl titles, text-lg content, space-y-4 paragraphs
+- Color updates: gray → neutral, blue → primary
+
+**Alternatives Considered**:
+- Markdown rendering: Rejected - content isn't markdown formatted
+- HTML content: Rejected - security concerns with dangerouslySetInnerHTML
+- Rich text editor: Rejected - overkill for display-only content
+
+**Status**: ✅ Implemented and deployed
+
+---
+
 ## 2025-10-03: RSS Feed Tag System Architecture
 
 **Decision**: Implement tag-based feed organization with database-backed storage

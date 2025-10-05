@@ -4,6 +4,64 @@
 
 ---
 
+## 2025-10-04: UX Enhancement & AI Intelligence Upgrade
+
+### Added - Trending Insights
+- **Trending Topics Analysis**: AI-powered analysis of current news trends
+  - On-demand generation from Home page via "Show Trending Insights" button
+  - Time period selector: 24 hours, 48 hours, or Week
+  - Claude-generated narrative analysis of main topics, themes, and connections
+  - Sample trending articles display (5 articles) with click-through navigation
+  - Refresh capability to regenerate insights with latest articles
+- **Backend Route Fix**: Moved `/trending` route before `/{article_id}` to fix FastAPI routing
+
+### Enhanced - AI Summaries
+- **Three Distinct Summary Types** with specialized prompts:
+  - **Brief** (100-150 words): Single paragraph + 2-3 bullet points, facts only
+  - **Comprehensive** (250-400 words): Main points + context + details + significance
+  - **Analytical** (300-500 words): Executive summary + analysis + outlook + critical questions
+- **Summary Type Selection**: Dropdown on all article cards (Home, Browse, Search, Reading List)
+- **Prompt Engineering**: Each type has distinct requirements for length, depth, and structure
+
+### Improved - Article Display
+- **Article Detail Page**: Professional formatting with paragraph breaks
+  - Content split by double newlines into proper paragraphs
+  - Enhanced summary display with paragraph and line break handling
+  - Larger headings (text-4xl for title) and improved spacing
+  - Primary color scheme throughout for consistency
+- **Summary Formatting**: Proper handling of multi-paragraph summaries
+  - Double newlines (`\n\n`) create paragraph breaks
+  - Single newlines (`\n`) preserved as line breaks within paragraphs
+  - Better visual styling with rounded corners and borders
+
+### Enhanced - Brand Identity
+- **Home Page Branding**: Added Distill logo and app name to hero section
+  - Large Distill icon (h-16) with app name prominently displayed
+  - "Pure News, Refined by AI" positioned as tagline
+  - Clear visual hierarchy: Logo → Name → Tagline → Description
+
+### Updated - Documentation
+- **Help Page**: Comprehensive updates with new features
+  - Trending Insights section with usage instructions
+  - Enhanced AI Summaries section explaining three types
+  - Updated Getting Started guide
+  - New Pro Tips for choosing summary types and using trends
+
+### Technical Details
+- **Frontend Components**: `TrendingInsights`, enhanced `ArticleCard`, updated `ArticleDetail`
+- **Backend Prompts**: Conditional prompt templates based on summary type
+- **API Integration**: TanStack Query for trending data with 5-minute cache
+- **React State**: Summary type selection state in ArticleCard component
+
+### User Impact
+- ✅ Discover what's trending in news with AI analysis
+- ✅ Choose summary length and depth based on time and needs
+- ✅ Better readability with properly formatted articles and summaries
+- ✅ Clear brand identity on home page
+- ✅ Comprehensive help documentation for all features
+
+---
+
 ## 2025-10-03: RSS Feed Tag System & Multi-Page Filtering
 
 ### Added - Backend
