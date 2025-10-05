@@ -1,4 +1,4 @@
-import { Search, List, Bookmark, Sparkles, Filter, Eye, Zap, Brain } from 'lucide-react'
+import { Search, List, Bookmark, Sparkles, Filter, Eye, Zap, Brain, TrendingUp } from 'lucide-react'
 
 export function Help() {
   const features = [
@@ -42,13 +42,27 @@ export function Help() {
     {
       icon: Sparkles,
       title: 'AI Summaries',
-      description: 'Get concise AI-generated summaries of articles',
+      description: 'Get AI-generated summaries in three distinct styles',
       instructions: [
-        'Click "Generate Summary" on any article card',
-        'View the AI-generated summary in the highlighted section',
-        'Toggle "Show AI Summaries" to display summaries for all articles at once',
-        'Summaries are saved and will appear automatically on future views',
-        'Summaries preserve 90%+ of key facts while reducing reading time'
+        'Choose your summary type: Brief (100-150 words), Comprehensive (250-400 words), or Analytical (300-500 words)',
+        'Brief summaries provide quick facts only, perfect for scanning headlines',
+        'Comprehensive summaries include context, details, and significance',
+        'Analytical summaries offer deep analysis, implications, and future outlook',
+        'Click "Generate Summary" after selecting your preferred type',
+        'Summaries are saved and will appear automatically on future views'
+      ]
+    },
+    {
+      icon: TrendingUp,
+      title: 'Trending Insights',
+      description: 'AI-powered analysis of what\'s trending in the news',
+      instructions: [
+        'On the Home page, click "Show Trending Insights" button',
+        'Select your time period: 24 hours, 48 hours, or Week',
+        'View AI-generated analysis of main topics, themes, and connections',
+        'Browse sample trending articles related to the analysis',
+        'Click any sample article to read the full story',
+        'Use the refresh button to regenerate insights with latest articles'
       ]
     },
     {
@@ -191,16 +205,19 @@ export function Help() {
         <h2 className="text-2xl font-bold text-primary-900 mb-4">Getting Started</h2>
         <div className="space-y-3 text-primary-800 leading-relaxed">
           <p>
-            <strong>New to Distill?</strong> Start by browsing the latest articles on the Home page
-            or Browse page. Try filtering by tags to find topics that interest you.
+            <strong>New to Distill?</strong> Start by checking out Trending Insights on the Home page
+            to see what's making headlines. Then browse the latest articles or filter by tags to find
+            topics that interest you.
           </p>
           <p>
-            Once you find interesting articles, click "Generate Summary" to get AI-powered insights
-            in seconds. Save articles to your Reading List for later review.
+            Once you find interesting articles, select a summary type (Brief, Comprehensive, or Analytical)
+            and click "Generate Summary" to get AI-powered insights in seconds. Save articles to your
+            Reading List for later review.
           </p>
           <p>
             For deeper analysis, use the Search page to find articles on specific topics, then
-            select multiple articles to generate a multi-perspective comparison.
+            select multiple articles to generate a multi-perspective comparison. Or try the Research Agent
+            for complex, multi-step research questions.
           </p>
         </div>
       </div>
@@ -212,8 +229,15 @@ export function Help() {
           <li className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-secondary-600 flex-shrink-0 mt-0.5" />
             <span>
-              <strong>Save time:</strong> Enable "Show AI Summaries" to see all summaries at once
-              instead of generating them individually.
+              <strong>Choose the right summary type:</strong> Use Brief for quick scanning, Comprehensive
+              for balanced understanding, and Analytical when you need deep insights and future implications.
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <TrendingUp className="h-5 w-5 text-secondary-600 flex-shrink-0 mt-0.5" />
+            <span>
+              <strong>Stay on top of trends:</strong> Check Trending Insights regularly to see AI analysis
+              of what's dominating the news cycle and discover sample articles you might have missed.
             </span>
           </li>
           <li className="flex items-start gap-3">
