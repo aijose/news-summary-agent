@@ -6,6 +6,7 @@ import { TagFilter } from '@/components/TagFilter'
 import { useInfiniteArticles } from '@/hooks/useArticlesQuery'
 import { useQuery } from '@tanstack/react-query'
 import { articleApi } from '@/services/api'
+import { DistillIcon } from '@/components/icons/DistillIcon'
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -100,9 +101,15 @@ export function Home() {
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16 pt-8">
-          <h1 className="text-5xl lg:text-6xl font-bold text-neutral-900 mb-6 text-balance">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <DistillIcon className="h-16 w-16 text-primary-600" />
+            <h1 className="text-5xl lg:text-6xl font-bold text-neutral-900 text-balance">
+              Distill
+            </h1>
+          </div>
+          <p className="text-2xl font-medium text-neutral-800 mb-4">
             Pure News, Refined by AI
-          </h1>
+          </p>
           <p className="text-xl text-neutral-600 mb-10 max-w-3xl mx-auto text-balance leading-relaxed">
             Browse curated articles, get AI-powered summaries, and filter by topic
             to stay informed in less time.
