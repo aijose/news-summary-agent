@@ -156,16 +156,28 @@ Professional React interface:
 ## Screenshots
 
 ### Home Page with Trending Insights
-![Home Page](docs/screenshots/home.png) *(Screenshot placeholder)*
+![Home Page](docs/screenshots/home.png)
+
+### Browse Articles with Tag Filtering
+![Browse Page](docs/screenshots/browse.png)
 
 ### Semantic Search with Multi-Perspective Analysis
-![Search Page](docs/screenshots/search.png) *(Screenshot placeholder)*
+![Search Page](docs/screenshots/search.png)
 
-### Article Detail with Summary Generation
-![Article Detail](docs/screenshots/article-detail.png) *(Screenshot placeholder)*
+### Article Detail with AI Summary Generation
+![Article Detail](docs/screenshots/article-detail.png)
+
+### Reading List - Save Articles for Later
+![Reading List](docs/screenshots/reading-list.png)
+
+### Research Agent - Autonomous AI Research
+![Research Agent](docs/screenshots/research-agent.png)
+
+### Help & Features Guide
+![Help Page](docs/screenshots/help.png)
 
 ### Admin Panel - Feed & Tag Management
-![Admin Panel](docs/screenshots/admin.png) *(Screenshot placeholder)*
+![Admin Panel](docs/screenshots/admin.png)
 
 ---
 
