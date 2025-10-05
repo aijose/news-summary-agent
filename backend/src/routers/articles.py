@@ -138,6 +138,31 @@ async def get_articles(
         raise HTTPException(status_code=500, detail="Failed to retrieve articles")
 
 
+@router.get("/trending")
+async def get_trending_topics(
+    hours_back: int = Query(24, ge=1, le=168, description="Hours back to analyze")
+):
+    """
+    Get trending topics analysis from recent articles.
+
+    - **hours_back**: Number of hours back to analyze (1-168)
+    """
+    try:
+        agent = get_news_agent()
+        analysis = await agent.analyze_trending_topics(hours_back)
+
+        if not analysis:
+            raise HTTPException(status_code=500, detail="Failed to analyze trending topics")
+
+        return analysis
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing trending topics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze trending topics")
+
+
 @router.get("/{article_id}")
 async def get_article(article_id: int, db: Session = Depends(get_db)):
     """
@@ -443,31 +468,6 @@ async def get_article_stats(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error retrieving article stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve statistics")
-
-
-@router.get("/trending")
-async def get_trending_topics(
-    hours_back: int = Query(24, ge=1, le=168, description="Hours back to analyze")
-):
-    """
-    Get trending topics analysis from recent articles.
-
-    - **hours_back**: Number of hours back to analyze (1-168)
-    """
-    try:
-        agent = get_news_agent()
-        analysis = await agent.analyze_trending_topics(hours_back)
-
-        if not analysis:
-            raise HTTPException(status_code=500, detail="Failed to analyze trending topics")
-
-        return analysis
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error analyzing trending topics: {e}")
-        raise HTTPException(status_code=500, detail="Failed to analyze trending topics")
 
 
 @router.delete("/{article_id}")
