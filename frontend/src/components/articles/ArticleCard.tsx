@@ -14,6 +14,7 @@ interface ArticleCardProps {
 export function ArticleCard({ article, showSummary = false, compact = false }: ArticleCardProps) {
   const navigate = useNavigate()
   const [generatedSummary, setGeneratedSummary] = useState<string | null>(null)
+  const [selectedSummaryType, setSelectedSummaryType] = useState<'brief' | 'comprehensive' | 'analytical'>('comprehensive')
   const { mutate: createSummary, isPending: isGenerating } = useCreateSummary()
 
   const handleCardClick = () => {
@@ -45,7 +46,7 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
   const handleSummarize = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click navigation
     createSummary(
-      { articleId: article.id, summaryType: 'comprehensive' },
+      { articleId: article.id, summaryType: selectedSummaryType },
       {
         onSuccess: (data) => {
           setGeneratedSummary(data.summary_text)
@@ -110,13 +111,27 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
         </div>
       )}
 
-      {/* Summarize Button */}
+      {/* Summarize Button with Type Selection */}
       {!compact && !displaySummary && (
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-3">
+          <select
+            value={selectedSummaryType}
+            onChange={(e) => {
+              e.stopPropagation()
+              setSelectedSummaryType(e.target.value as 'brief' | 'comprehensive' | 'analytical')
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="px-3 py-2 text-sm border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 bg-white"
+            disabled={isGenerating}
+          >
+            <option value="brief">Brief</option>
+            <option value="comprehensive">Comprehensive</option>
+            <option value="analytical">Analytical</option>
+          </select>
           <button
             onClick={handleSummarize}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-secondary-500 rounded-lg hover:bg-secondary-600 disabled:bg-neutral-300 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-secondary-500 rounded-lg hover:bg-secondary-600 disabled:bg-neutral-300 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-colors"
           >
             <SparklesIcon className="h-4 w-4" />
             {isGenerating ? 'Generating...' : 'Generate Summary'}
@@ -129,7 +144,7 @@ export function ArticleCard({ article, showSummary = false, compact = false }: A
         <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-5 mb-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary-800 mb-3">
             <SparklesIcon className="h-4 w-4" />
-            <span>AI Summary</span>
+            <span className="capitalize">{selectedSummaryType} Summary</span>
             {generatedSummary && <span className="text-xs font-normal text-primary-600">(Just generated)</span>}
           </div>
           <div className="text-sm text-primary-900 prose prose-sm max-w-none leading-relaxed">
